@@ -1,87 +1,74 @@
 import Link from "next/link";
-import { useState } from "react";
 import AuthModal from "./AuthModal";
 import { useUser } from "../context/UserContext";
+import { useState } from "react";
 
 export default function Header({ showToast }) {
   const { user, logout } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [startView, setStartView] = useState("login");
-  const [menuOpen, setMenuOpen] = useState(false); // state for mobile menu
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close mobile nav when clicking any nav link
+  const handleNavClick = () => setMenuOpen(false);
+
+  // Handle login/register modal open
+  const openModal = (view) => {
+    setStartView(view);
+    setShowModal(true);
+    handleNavClick();
+  };
 
   return (
-    <header className="site-header header bg-dark text-white">
-      <div className="container header-inner d-flex align-items-center justify-content-between">
-        {/* Brand */}
-        <div className="brand d-flex align-items-center">
-          <div className="logo me-2">B</div>
-          <div>
-            <h1 className="h4 mb-0">BitBuy Investments</h1>
-            <p className="tag small mb-0">Simple Bitcoin investing — demo</p>
-          </div>
-        </div>
-
-        {/* Mobile menu toggle */}
-        <button 
-          className="navbar-toggler d-lg-none" 
-          type="button" 
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <i className="bx bx-menu-alt-right fs-3"></i>
+    <header className="site-header sticky-top">
+      <nav className="navbar navbar-expand-lg navbar-dark bg-white shadow-sm px-4">
+        <Link href="/" className="navbar-brand p-0 d-flex align-items-center" onClick={handleNavClick}>
+          <h1 className="text-primary m-0" style={{fontWeight:700, fontSize:"2rem", letterSpacing:0.5}}>
+            <i className="fas fa-donate me-3"></i>Bitbuy
+          </h1>
+        </Link>
+        <button className="navbar-toggler" type="button" aria-label="Toggle navigation" aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}>
+          <span className="navbar-toggler-icon"></span>
         </button>
-
-        {/* Nav links */}
-        <nav className={`nav navbar-collapse ${menuOpen ? "show" : "collapse"} d-lg-flex`}>
-          <Link href="/" className="nav-link">
-            <button className="nav-btn">Home</button>
-          </Link>
-          <a href="#features" className="nav-link">
-            <button className="nav-btn">Features</button>
-          </a>
-          <a href="#reviews" className="nav-link">
-            <button className="nav-btn">Reviews</button>
-          </a>
-
-          {user ? (
-            <>
-              <Link href="/profile" className="nav-link">
-                <button className="nav-btn">Profile</button>
-              </Link>
+        <div className={`collapse navbar-collapse${menuOpen ? " show" : ""}`} id="navbarCollapse">
+          <div className="navbar-nav ms-auto py-0">
+            <Link href="/" className="nav-item nav-link active" onClick={handleNavClick}>Home</Link>
+            
+          
+            {user && user.isAdmin && (
+              <Link href="/admin" className="nav-item nav-link fw-bold" onClick={handleNavClick}>Admin</Link>
+            )}
+          </div>
+          <div className="d-flex align-items-center flex-nowrap pt-xl-0">
+            {user ? (
+              <>
+                <Link href="/profile" className="btn btn-outline-primary rounded-pill py-2 px-4 ms-2 flex-wrap flex-sm-shrink-0" onClick={handleNavClick}>
+                  Dashboard
+                </Link>
+                <button
+                  className="btn btn-dark rounded-pill py-2 px-4 ms-2 flex-wrap flex-sm-shrink-0"
+                  onClick={() => {
+                    logout();
+                    showToast && showToast("success", "Logged out!");
+                    handleNavClick();
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
               <button
-                className="nav-btn ghost"
-                onClick={() => {
-                  logout();
-                  showToast && showToast("success", "Logged out.");
-                }}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="nav-btn"
-                onClick={() => {
-                  setStartView("login");
-                  setShowModal(true);
-                }}
+                className="btn btn-primary rounded-pill text-white py-2 px-4 ms-2 flex-wrap flex-sm-shrink-0"
+                onClick={() => openModal("login")}
               >
                 Login
               </button>
-              <button
-                className="nav-btn primary"
-                onClick={() => {
-                  setStartView("register");
-                  setShowModal(true);
-                }}
-              >
-                Register
-              </button>
-            </>
-          )}
-        </nav>
-      </div>
-
+            )}
+            
+          </div>
+        </div>
+      </nav>
       {/* Auth Modal */}
       {showModal && (
         <AuthModal

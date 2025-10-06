@@ -9,11 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
     "@popperjs/core": "^2.11.8",
     "@swc/core": "^1.13.5",
+    "animate.css": "^4.1.1",
+    "aos": "^2.3.4",
     "bootstrap": "^5.3.8",
     "next": "^14.2.32",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-owl-carousel3": "^2.2.5",
+    "react-slick": "^0.31.0",
+    "slick-carousel": "^1.8.1"
   }
 }
