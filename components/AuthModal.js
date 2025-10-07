@@ -16,7 +16,6 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Reset form when switching view
   useEffect(() => {
     setForm({ name: "", email: "", password: "" });
   }, [view]);

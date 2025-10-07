@@ -3,6 +3,7 @@ import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
 import CryptoPriceMarquee from "../components/CryptoPriceMarquee";
 import SimulatedAlert from "../components/SimulatedAlert";
+import InvestmentGrowthChart from "../components/InvestmentGrowthChart";
 
 function getCoinBalances(investments, withdrawals) {
   const balances = {};
@@ -29,6 +30,7 @@ export default function Profile({ showToast }) {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawMsg, setWithdrawMsg] = useState("");
   const [withdrawErr, setWithdrawErr] = useState("");
+  const [withdrawAddress, setWithdrawAddress] = useState(""); // NEW: Wallet Address state
   // Profile edit states
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -39,6 +41,12 @@ export default function Profile({ showToast }) {
   useEffect(() => {
     if (user === undefined) return;
     if (!user) router.replace("/");
+    // Handle redirect from investment plans
+    if (router.query.invest === "true") {
+      setModalOpen(true);
+      // Remove query after opening modal
+      router.replace("/profile", undefined, { shallow: true });
+    }
     const stored = JSON.parse(localStorage.getItem("cryptoAddresses") || "{}");
     setAddresses({
       btc: stored.btc || "",
@@ -128,11 +136,13 @@ export default function Profile({ showToast }) {
       setWithdrawMsg("Nothing to withdraw yet. Invest now to start earning!");
       setWithdrawCoin("btc");
       setWithdrawAmount("");
+      setWithdrawAddress("");
       setWithdrawModalOpen(true);
     } else {
       setWithdrawMsg("");
       setWithdrawCoin(coinsWithFunds[0][0]);
       setWithdrawAmount("");
+      setWithdrawAddress("");
       setWithdrawErr("");
       setWithdrawModalOpen(true);
     }
@@ -150,10 +160,15 @@ export default function Profile({ showToast }) {
       setWithdrawErr("Cannot withdraw more than your balance!");
       return;
     }
+    if (!withdrawAddress.trim()) {
+      setWithdrawErr("Wallet address required!");
+      return;
+    }
     const newWithdrawal = {
       id: Date.now(),
       coin: withdrawCoin,
       amount: amtNum,
+      address: withdrawAddress,
       status: "pending",
       timestamp: new Date().toISOString()
     };
@@ -161,10 +176,15 @@ export default function Profile({ showToast }) {
       ...user,
       withdrawals: [...withdrawals, newWithdrawal]
     });
-    showToast && showToast("info", `Withdrawal request submitted for ${amtNum} ${withdrawCoin.toUpperCase()}. Waiting admin approval.`, 4000);
+    showToast && showToast(
+      "info",
+      `Withdrawal request for ${amtNum} ${withdrawCoin.toUpperCase()} submitted. Waiting admin approval.`,
+      4000
+    );
     setWithdrawModalOpen(false);
     setWithdrawAmount("");
     setWithdrawCoin("btc");
+    setWithdrawAddress("");
     setWithdrawErr("");
   }
 
@@ -313,6 +333,8 @@ export default function Profile({ showToast }) {
           </button>
         </div>
       </div>
+
+      <InvestmentGrowthChart />
       {/* Transaction History */}
       <div className="row mb-4">
         <div className="col-md-10 mx-auto">
@@ -427,7 +449,10 @@ export default function Profile({ showToast }) {
               <form onSubmit={withdrawMsg ? undefined : submitWithdraw}>
                 <div className="modal-header">
                   <h5 className="modal-title">Withdrawal</h5>
-                  <button type="button" className="btn-close" onClick={() => setWithdrawModalOpen(false)}></button>
+                  <button type="button" className="btn-close" onClick={() => {
+                    setWithdrawModalOpen(false);
+                    setWithdrawAddress("");
+                  }}></button>
                 </div>
                 <div className="modal-body">
                   {withdrawMsg ? (
@@ -467,19 +492,35 @@ export default function Profile({ showToast }) {
                         />
                         {withdrawErr && <div className="text-danger mt-2">{withdrawErr}</div>}
                       </div>
-                      
+                      <div className="mb-3">
+                        <label className="form-label fw-bold">Wallet Address</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={withdrawAddress}
+                          onChange={e => setWithdrawAddress(e.target.value)}
+                          placeholder="Enter your wallet address"
+                          required
+                        />
+                      </div>
                     </>
                   )}
                 </div>
                 <div className="modal-footer">
                   {withdrawMsg ? (
-                    <button type="button" className="btn btn-primary" onClick={() => setWithdrawModalOpen(false)}>
+                    <button type="button" className="btn btn-primary" onClick={() => {
+                      setWithdrawModalOpen(false);
+                      setWithdrawAddress("");
+                    }}>
                       Close
                     </button>
                   ) : (
                     <>
                       <button type="submit" className="btn btn-warning">Withdraw</button>
-                      <button type="button" className="btn btn-secondary" onClick={() => setWithdrawModalOpen(false)}>
+                      <button type="button" className="btn btn-secondary" onClick={() => {
+                        setWithdrawModalOpen(false);
+                        setWithdrawAddress("");
+                      }}>
                         Cancel
                       </button>
                     </>

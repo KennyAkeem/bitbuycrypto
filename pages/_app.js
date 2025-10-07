@@ -2,6 +2,7 @@ import "../styles/globals.css";
 import { useState, useEffect } from "react";
 import { UserProvider } from "../context/UserContext";
 import Header from "../components/Header";
+import InvestmentPlans from "../components/InvestmentPlans";
 import Footer from "../components/Footer";
 import Toast from "../components/Toast";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -12,6 +13,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import Head from "next/head";
 import Script from "next/script";
+
 
 function MyApp({ Component, pageProps }) {
   const [toast, setToast] = useState({

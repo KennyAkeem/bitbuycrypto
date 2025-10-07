@@ -25,6 +25,9 @@ const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(undefined); // undefined at first for SSR
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showInvestModal, setShowInvestModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   useEffect(() => {
     setUser(getCurrentUser());
@@ -87,8 +90,39 @@ export function UserProvider({ children }) {
     setUser(null);
   }
 
+  // Modal controls
+  function openAuthModal() {
+    setShowAuthModal(true);
+  }
+  function closeAuthModal() {
+    setShowAuthModal(false);
+  }
+  function openInvestModal(plan) {
+    setSelectedPlan(plan || null);
+    setShowInvestModal(true);
+  }
+  function closeInvestModal() {
+    setShowInvestModal(false);
+    setSelectedPlan(null);
+  }
+
   return (
-    <UserContext.Provider value={{ user, updateUser, register, login, logout }}>
+    <UserContext.Provider
+      value={{
+        user,
+        updateUser,
+        register,
+        login,
+        logout,
+        showAuthModal,
+        openAuthModal,
+        closeAuthModal,
+        showInvestModal,
+        openInvestModal,
+        closeInvestModal,
+        selectedPlan,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
@@ -97,4 +131,3 @@ export function UserProvider({ children }) {
 export function useUser() {
   return useContext(UserContext);
 }
-

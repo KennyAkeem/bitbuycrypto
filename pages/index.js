@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useUser } from "../context/UserContext";
 import CryptoPriceMarquee from "../components/CryptoPriceMarquee";
 import SimulatedAlert from "../components/SimulatedAlert";
 import HeroCarousel from "../components/HeroCarousel";
 import AuthModal from "../components/AuthModal";
+import InvestmentModal from "../components/InvestmentModal";
+import InvestmentPlans from '../components/InvestmentPlans';
 
 const unsplash = [
   "/images/about-2.jpg",
@@ -20,7 +23,6 @@ const unsplash = [
   "/images/project-3.jpg",
   "/images/projects-1.jpg",
   "/images/projects-2.jpg",
-  
   "/images/service-1.jpg",
   "/images/service-2.jpg",
   "/images/service-3.jpg",
@@ -34,8 +36,14 @@ const unsplash = [
   "/images/testimonial-3.jpg"
 ];
 
-
 export default function LandingPage({ showToast }) {
+  const {
+    showAuthModal,
+    closeAuthModal,
+    showInvestModal,
+    closeInvestModal
+  } = useUser();
+
   const [showModal, setShowModal] = useState(false);
   const [authView, setAuthView] = useState("register");
 
@@ -186,7 +194,7 @@ export default function LandingPage({ showToast }) {
                       </a>
                       <p className="mb-4">"Empowering global investors with profitable, transparent opportunities."
 
-"The world’s trusted partner for secure, high-return investments."</p>
+"“The world’s trusted partner for secure, high-return investments.”"</p>
                       <a className="btn btn-light rounded-pill py-2 px-4" href="#">Read More</a>
                     </div>
                   </div>
@@ -230,38 +238,9 @@ export default function LandingPage({ showToast }) {
           </div>
         </div>
       </div>
-
-      {/* Blog Section */}
-      <div className="container-fluid blog pb-5 bg-light">
-        <div className="container pb-5">
-          <div className="text-center mx-auto pb-5" style={{maxWidth:800}}>
-            <h4 className="text-primary">Our Blogs</h4>
-            <h1 className="display-4">Latest Articles & News from the Blogs</h1>
-          </div>
-          <div className="row g-4 justify-content-center">
-            {[0,1,2].map((n, idx) => (
-              <div className="col-md-6 col-lg-6 col-xl-4" key={idx}>
-                <div className="blog-item bg-light rounded p-4" style={{backgroundImage: "url("+unsplash[idx+3]+")"}}>
-                  <div className="mb-4">
-                    <h4 className="text-primary mb-2">{["Investment","Business","Consulting"][idx]}</h4>
-                    <div className="d-flex justify-content-between">
-                      <p className="mb-0"><span className="text-dark fw-bold">On</span> Mar 14, 2024</p>
-                      <p className="mb-0"><span className="text-dark fw-bold">By</span> Mark D. Brock</p>
-                    </div>
-                  </div>
-                  <div className="project-img">
-                    <img src={unsplash[idx]} className="img-fluid w-100 rounded" alt="Blog" />
-                  </div>
-                  <div className="my-4">
-                    <a href="#" className="h4">Blog Headline</a>
-                  </div>
-                  <a className="btn btn-primary rounded-pill py-2 px-4" href="#">Explore More</a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      
+      {/* Investment Plans Section */}
+      <InvestmentPlans />
 
       {/* Team Section */}
       <div className="container-fluid team pb-5 bg-light">
@@ -331,79 +310,79 @@ export default function LandingPage({ showToast }) {
         </div>
       </div>
 
-     {/* FAQ Section */}
-<div className="container-fluid faq py-5 bg-light">
-  <div className="container py-5">
-    <div className="row g-5 align-items-center">
-      <div className="col-lg-6">
-        <div className="pb-5">
-          <h4 className="text-primary">FAQs</h4>
-          <h1 className="display-4">Get the Answers to Common Questions</h1>
+      {/* FAQ Section */}
+      <div className="container-fluid faq py-5 bg-light">
+        <div className="container py-5">
+          <div className="row g-5 align-items-center">
+            <div className="col-lg-6">
+              <div className="pb-5">
+                <h4 className="text-primary">FAQs</h4>
+                <h1 className="display-4">Get the Answers to Common Questions</h1>
+              </div>
+              <div className="accordion bg-light rounded p-4" id="accordionExample">
+                {/* FAQ 1 */}
+                <div className="accordion-item border-0 mb-4">
+                  <h2 className="accordion-header" id="heading0">
+                    <button className="accordion-button text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse0" aria-expanded="true" aria-controls="collapse0">
+                      What is Bitbuy?
+                    </button>
+                  </h2>
+                  <div id="collapse0" className="accordion-collapse collapse show" aria-labelledby="heading0" data-bs-parent="#accordionExample">
+                    <div className="accordion-body my-2">
+                      <p>Bitbuy is a trusted investment platform that allows users to invest securely in cryptocurrencies such as Bitcoin, Ethereum, and USDT. Our goal is to make digital investing simple, transparent, and profitable for everyone.</p>
+                    </div>
+                  </div>
+                </div>
+                {/* FAQ 2 */}
+                <div className="accordion-item border-0 mb-4">
+                  <h2 className="accordion-header" id="heading1">
+                    <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                      What industries do you specialize in?
+                    </button>
+                  </h2>
+                  <div id="collapse1" className="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#accordionExample">
+                    <div className="accordion-body my-2">
+                      <p>We work with clients across multiple industries including finance, technology, and retail. [Random text: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque vitae velit ex.]</p>
+                    </div>
+                  </div>
+                </div>
+                {/* FAQ 3 */}
+                <div className="accordion-item border-0 mb-4">
+                  <h2 className="accordion-header" id="heading2">
+                    <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                      Can you guarantee for growth?
+                    </button>
+                  </h2>
+                  <div id="collapse2" className="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#accordionExample">
+                    <div className="accordion-body my-2">
+                      <p>Growth depends on a variety of market factors. [Random text: Donec euismod, nisl eget consectetur sagittis, nisl nunc vehicula nunc, at convallis urna elit in urna.]</p>
+                    </div>
+                  </div>
+                </div>
+                {/* FAQ 4 */}
+                <div className="accordion-item border-0 mb-4">
+                  <h2 className="accordion-header" id="heading3">
+                    <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                      What makes your business plans so special?
+                    </button>
+                  </h2>
+                  <div id="collapse3" className="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#accordionExample">
+                    <div className="accordion-body my-2">
+                      <p>Our business plans are tailored to each client. [Random text: Fusce id velit ut tortor pretium viverra suspendisse potenti. Praesent semper feugiat nibh sed pulvinar proin gravida.]</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-6">
+              <div className="faq-img RotateMoveRight rounded">
+                <img src={unsplash[2]} className="img-fluid rounded w-100" alt="FAQ" />
+                <a className="faq-btn btn btn-primary rounded-pill text-white py-3 px-5" href="#">Read More Q & A <i className="fas fa-arrow-right ms-2"></i></a>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="accordion bg-light rounded p-4" id="accordionExample">
-          {/* FAQ 1 */}
-          <div className="accordion-item border-0 mb-4">
-            <h2 className="accordion-header" id="heading0">
-              <button className="accordion-button text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse0" aria-expanded="true" aria-controls="collapse0">
-                What is Bitbuy?
-              </button>
-            </h2>
-            <div id="collapse0" className="accordion-collapse collapse show" aria-labelledby="heading0" data-bs-parent="#accordionExample">
-              <div className="accordion-body my-2">
-                <p>Bitbuy is a trusted investment platform that allows users to invest securely in cryptocurrencies such as Bitcoin, Ethereum, and USDT. Our goal is to make digital investing simple, transparent, and profitable for everyone.</p>
-              </div>
-            </div>
-          </div>
-          {/* FAQ 2 */}
-          <div className="accordion-item border-0 mb-4">
-            <h2 className="accordion-header" id="heading1">
-              <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
-                What industries do you specialize in?
-              </button>
-            </h2>
-            <div id="collapse1" className="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#accordionExample">
-              <div className="accordion-body my-2">
-                <p>We work with clients across multiple industries including finance, technology, and retail. [Random text: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque vitae velit ex.]</p>
-              </div>
-            </div>
-          </div>
-          {/* FAQ 3 */}
-          <div className="accordion-item border-0 mb-4">
-            <h2 className="accordion-header" id="heading2">
-              <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
-                Can you guarantee for growth?
-              </button>
-            </h2>
-            <div id="collapse2" className="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#accordionExample">
-              <div className="accordion-body my-2">
-                <p>Growth depends on a variety of market factors. [Random text: Donec euismod, nisl eget consectetur sagittis, nisl nunc vehicula nunc, at convallis urna elit in urna.]</p>
-              </div>
-            </div>
-          </div>
-          {/* FAQ 4 */}
-          <div className="accordion-item border-0 mb-4">
-            <h2 className="accordion-header" id="heading3">
-              <button className="accordion-button collapsed text-dark fs-5 fw-bold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
-                What makes your business plans so special?
-              </button>
-            </h2>
-            <div id="collapse3" className="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#accordionExample">
-              <div className="accordion-body my-2">
-                <p>Our business plans are tailored to each client. [Random text: Fusce id velit ut tortor pretium viverra suspendisse potenti. Praesent semper feugiat nibh sed pulvinar proin gravida.]</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-lg-6">
-        <div className="faq-img RotateMoveRight rounded">
-          <img src={unsplash[2]} className="img-fluid rounded w-100" alt="FAQ" />
-          <a className="faq-btn btn btn-primary rounded-pill text-white py-3 px-5" href="#">Read More Q & A <i className="fas fa-arrow-right ms-2"></i></a>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+      </div> 
 
       {/* Footer */}
       <div className="container-fluid footer py-5 bg-dark text-white">
@@ -485,8 +464,13 @@ export default function LandingPage({ showToast }) {
       <a href="#" className="btn btn-primary btn-lg-square back-to-top"><i className="fa fa-arrow-up"></i></a>
 
       {/* Auth Modal */}
-      {showModal && (
-        <AuthModal initialView={authView} onClose={() => setShowModal(false)} showToast={showToast} />
+      {showAuthModal && (
+        <AuthModal initialView="login" onClose={closeAuthModal} showToast={showToast} />
+      )}
+
+      {/* Investment Modal */}
+      {showInvestModal && (
+        <InvestmentModal show={showInvestModal} onClose={closeInvestModal} />
       )}
     </div>
   );

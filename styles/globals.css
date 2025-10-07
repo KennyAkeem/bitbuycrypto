@@ -436,7 +436,7 @@ button{cursor:pointer}
 .header-carousel .header-carousel-item-img-3 {
   position: relative;
   overflow: hidden;
-  
+  z-index: 1;
 }
 .header-carousel .header-carousel-item-img-1::before,
 .header-carousel .header-carousel-item-img-2::before,
@@ -1455,40 +1455,6 @@ button{cursor:pointer}
 /*** FAQ'S End ***/
 
 /*** Footer Start ***/
-.footer {
-    background: var(--bs-dark);
-}
-.footer .footer-item a {
-    line-height: 35px;
-    color: var(--bs-body);
-    transition: 0.5s;
-}
-
-.footer .footer-item p {
-    line-height: 35px;
-}
-
-.footer .footer-item a:hover {
-    letter-spacing: 1px;
-    color: var(--bs-primary);
-}
-
-.footer .footer-item-post a {
-    transition: 0.5s;
-}
-
-.footer .footer-item-post a:hover {
-    color: var(--bs-primary) !important;
-}
-
-.footer .footer-item-post .footer-btn a {
-    transition: 0.5s;
-}
-
-.footer .footer-item-post .footer-btn a:hover {
-    color: var(--bs-dark);
-}
-/*** Footer End ***/
 
 /*** copyright Start ***/
 .copyright {
@@ -1497,4 +1463,340 @@ button{cursor:pointer}
 }
 /*** copyright end ***/
 
+.investment-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #eaeaea 100%);
+  min-height: 100vh;
+}
+.investment-title {
+  color: #2359f7;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.investment-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 32px rgba(35, 89, 247, 0.08), 0 1.5px 6px rgba(0,0,0,0.05);
+  padding: 2rem 1.5rem 2.5rem 1.5rem;
+  transition: transform 0.23s cubic-bezier(.4,2,.6,1), box-shadow 0.23s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.investment-card:hover {
+  transform: translateY(-14px) scale(1.03);
+  box-shadow: 0 16px 48px rgba(35, 89, 247, 0.13), 0 3px 12px rgba(0,0,0,0.06);
+  border: 1.5px solid #2359f7;
+}
 
+.plan-name {
+  font-size: 1.7rem;
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.plan-name.basic { color: #2d9cdb; }
+.plan-name.bronze { color: #cd7f32; }
+.plan-name.silver { color: #bfc8d9; }
+.plan-name.gold { color: #ffd700; }
+.plan-name.platinum { color: #8a8aff; }
+
+.plan-price {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #2359f7;
+  margin-bottom: 1rem;
+}
+.plan-details {
+  text-align: left;
+  list-style: disc inside;
+  margin: 0 0 1.4rem 0;
+  padding: 0;
+  font-size: 1.09rem;
+  color: #444;
+}
+.plan-details li {
+  margin-bottom: 0.5rem;
+}
+.invest-btn {
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(90deg, #2359f7 0%, #2d9cdb 100%);
+  border: none;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(35, 89, 247, 0.16);
+}
+.invest-btn:hover {
+  background: linear-gradient(90deg, #2d9cdb 0%, #2359f7 100%);
+  transform: scale(1.06);
+}
+
+.chartCard {
+  background: linear-gradient(120deg, #e8f0fe 0%, #f8fbff 100%);
+  box-shadow: 0 4px 24px rgba(27,198,255,0.12), 0 1px 6px rgba(0,0,0,0.06);
+  border-radius: 18px;
+  padding: 2rem 1.25rem 1.5rem 1.25rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  border: 1.5px solid #e8f0fe;
+  transition: box-shadow 0.25s;
+}
+
+.chartCard:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2.5px 12px rgba(27,198,255,0.15);
+}
+
+.chartTitle {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #1bc6ff;
+  margin-bottom: 0.8rem;
+  text-align: center;
+}
+
+.chartCurrentValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0a2540;
+  margin-top: 1rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.chartSubtitle {
+  display: block;
+  font-size: 1rem;
+  color: #6c757d;
+  text-align: center;
+  margin-bottom: 1rem;
+  margin-top: 0.4rem;
+}
+
+.custom-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(27,198,255,0.13) !important;
+  background: #fff !important;
+  padding: 0.9rem 1.2rem !important;
+  font-size: 1rem !important;
+  border: 1px solid #e8f0fe;
+}
+
+.recharts-tooltip-wrapper {
+  border-radius: 8px !important;
+  background: #fff !important;
+  font-size: 1rem !important;
+}
+
+.recharts-default-tooltip {
+  border-radius: 8px !important;
+  background: #f8fbff !important;
+}
+
+@media (max-width: 600px) {
+  .chartCard {
+    padding: 1rem 0.4rem 1rem 0.4rem;
+    max-width: 98vw;
+  }
+  .chartTitle {
+    font-size: 1.1rem;
+  }
+  .chartCurrentValue {
+    font-size: 1rem;
+  }
+}
+
+
+/* Sleek Modern Footer Style */
+
+.footer {
+  background: linear-gradient(120deg, #18191d 0%, #232436 100%);
+  color: #f3f5fa;
+  border-top: 2px solid #1bc6ff;
+  padding-bottom: 0;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  box-shadow: 0 -4px 24px rgba(27,198,255,0.08);
+}
+
+.footer .container {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.footer-item, .footer-item-post {
+  background: rgba(255,255,255,0.02);
+  border-radius: 16px;
+  padding: 1rem 1.2rem 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 8px rgba(27,198,255,0.07);
+  transition: box-shadow 0.2s;
+}
+
+.footer-item:hover, .footer-item-post:hover {
+  box-shadow: 0 4px 14px rgba(27,198,255,0.10);
+}
+
+.footer-item h4, .footer-item-post h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1bc6ff;
+  margin-bottom: 1.2rem;
+  letter-spacing: 1px;
+}
+
+.footer-item a, .footer-item-post a {
+  color: #e8f0fe;
+  transition: color 0.18s;
+  font-size: 1rem;
+}
+
+.footer-item a:hover, .footer-item-post a:hover {
+  color: #1bc6ff;
+  text-decoration: underline;
+}
+
+.footer-item-post p.text-uppercase {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #1bc6ff;
+  margin-bottom: 0.4rem;
+}
+
+.footer-btn .btn {
+  border-radius: 22px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #18191d;
+  box-shadow: 0 1px 6px rgba(27,198,255,0.10);
+  transition: background 0.2s, color 0.2s;
+}
+
+.footer-btn .btn:hover {
+  background: #1bc6ff;
+  color: #fff;
+}
+
+.footer .form-control {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid #1bc6ff;
+  color: #e8f0fe;
+  font-size: 1rem;
+}
+
+.footer .form-control:focus {
+  border-color: #1bc6ff;
+  box-shadow: 0 0 0 2px rgba(27,198,255,0.14);
+}
+
+.footer .btn-primary {
+  background: linear-gradient(120deg,#1bc6ff 0%,#007bff 100%);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(27,198,255,0.10);
+  transition: background 0.2s;
+}
+
+.footer .btn-primary:hover {
+  background: linear-gradient(120deg,#007bff 0%,#1bc6ff 100%);
+  color: #fff;
+}
+
+.footer .btn-light {
+  background: #f8fbff;
+  color: #232436;
+  border: none;
+  box-shadow: 0 2px 8px rgba(27,198,255,0.08);
+  transition: background 0.2s, color 0.2s;
+}
+
+.footer .btn-light:hover {
+  background: #1bc6ff;
+  color: #fff;
+}
+
+.footer .btn-md-square {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer .btn-md-square i {
+  color: #1bc6ff;
+  transition: color 0.2s;
+}
+
+.footer .btn-md-square:hover i {
+  color: #fff;
+}
+
+.footer .position-relative input.form-control {
+  padding-right: 6rem;
+}
+
+.footer .position-absolute.btn {
+  right: 0.9rem;
+}
+
+.copyright {
+  background: #18191d;
+  color: #e8f0fe;
+  border-top: 1px solid #1bc6ff;
+  font-size: 0.97rem;
+}
+
+.copyright a {
+  color: #1bc6ff;
+  font-weight: 500;
+  transition: color 0.18s;
+}
+
+.copyright a:hover {
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .footer .container {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  .footer-item, .footer-item-post {
+    margin-bottom: 1rem;
+    padding: 1rem 0.7rem;
+  }
+  .footer-item h4, .footer-item-post h4 {
+    font-size: 1.07rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer .container {
+    padding: 1rem 0.2rem;
+  }
+  .footer-item, .footer-item-post {
+    padding: 0.6rem 0.2rem;
+    border-radius: 11px;
+  }
+  .footer-btn .btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1.2rem;
+  }
+  .footer .btn-md-square {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    border-radius: 7px;
+  }
+}

@@ -15,11 +15,13 @@
     "animate.css": "^4.1.1",
     "aos": "^2.3.4",
     "bootstrap": "^5.3.8",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
     "next": "^14.2.32",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-owl-carousel3": "^2.2.5",
     "react-slick": "^0.31.0",
+    "recharts": "^3.2.1",
     "slick-carousel": "^1.8.1"
   }
 }
