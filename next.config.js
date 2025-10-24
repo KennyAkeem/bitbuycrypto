@@ -1,4 +1,4 @@
-/** Minimal Next.js config for the demo */
+/** Minimal Next.js config for Bitbuy */
 const nextConfig = {
     reactStrictMode: true,
   };

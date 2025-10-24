@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import { useState, useEffect } from "react";
-import { UserProvider } from "../context/UserContext";
+import { UserProvider, useUser } from "../context/UserContext";
 import Header from "../components/Header";
 import InvestmentPlans from "../components/InvestmentPlans";
 import Footer from "../components/Footer";
@@ -13,7 +13,29 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import Head from "next/head";
 import Script from "next/script";
+import DialogflowChatbot from "../components/DialogflowChatbot";
 
+function InnerApp({ Component, pageProps, showToast, hideToast, toast }) {
+  const { user } = useUser();
+
+  return (
+    <>
+      <Header showToast={showToast} />
+      <main id="main">
+        <Component {...pageProps} showToast={showToast} />
+      </main>
+      <Footer />
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={hideToast}
+        duration={toast.duration}
+      />
+      {user && <DialogflowChatbot />}
+    </>
+  );
+}
 
 function MyApp({ Component, pageProps }) {
   const [toast, setToast] = useState({
@@ -22,29 +44,25 @@ function MyApp({ Component, pageProps }) {
     message: "",
   });
 
-  // ✅ Load Bootstrap JS only on client
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // ✅ Load Bootstrap bundle
       require("bootstrap/dist/js/bootstrap.bundle.min.js");
-    }
-  }, []);
 
-  // ✅ Initialize AOS after it’s loaded
-  useEffect(() => {
-    const checkAOS = setInterval(() => {
-      if (window.AOS) {
-        window.AOS.init({
-          offset: 120,
-          duration: 1000,
-          easing: "ease-in-out",
-          once: true,
+      // ✅ Register Service Worker (for PWA/offline support)
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((registration) => {
+              console.log("Service Worker registered:", registration);
+            })
+            .catch((error) => {
+              console.log("Service Worker registration failed:", error);
+            });
         });
-        window.AOS.refresh();
-        clearInterval(checkAOS);
       }
-    }, 500);
-
-    return () => clearInterval(checkAOS);
+    }
   }, []);
 
   function showToast(type, message, duration = 3000) {
@@ -58,38 +76,66 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>BitBuy | Smart Investment Platform</title>
+        <title>BitBuy | Smart Crypto Investment Platform</title>
         <meta
           name="description"
-          content="Invest in BitBuy with crypto — BTC, ETH, USDT — and grow your wealth securely."
+          content="Invest smarter with BitBuy — a secure crypto investment platform where you can grow your wealth with BTC, ETH, and USDT. Start earning daily profits with trusted blockchain technology."
         />
+        <meta
+          name="keywords"
+          content="BitBuy, crypto investment, Bitcoin, Ethereum, USDT, crypto trading, blockchain, crypto returns, secure crypto platform, smart investment, digital assets"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta name="author" content="BitBuy" />
+        <meta name="theme-color" content="#f8b400" />
 
-        {/* ✅ Bootstrap CSS */}
+        {/* Open Graph (Facebook, LinkedIn) */}
+        <meta
+          property="og:title"
+          content="BitBuy | Smart Crypto Investment Platform"
+        />
+        <meta
+          property="og:description"
+          content="Join BitBuy — invest in crypto securely and grow your wealth with daily profits. BTC, ETH, and USDT supported."
+        />
+        <meta property="og:image" content="/images/favicon.png" />
+        <meta property="og:url" content="https://bitbuy.com" />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="BitBuy | Smart Crypto Investment Platform"
+        />
+        <meta
+          name="twitter:description"
+          content="Secure, reliable, and profitable crypto investments. Start earning daily with BitBuy today!"
+        />
+        <meta name="twitter:image" content="/images/favicon.png" />
+
+        {/* Favicon */}
+        <link rel="icon" href="/images/favicon.png" type="image/png" />
+
+        {/* ✅ Manifest for PWA */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* ✅ Bootstrap CSS fallback */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6uY9lZg9lF1Q6p6x9FqjLw1Ds4P5x5m5iZQ5j5Q5W5j5Q"
           crossOrigin="anonymous"
         />
-
-      
       </Head>
 
-      
-    
-
       <UserProvider>
-        <Header showToast={showToast} />
-        <main id="main">
-          <Component {...pageProps} showToast={showToast} />
-        </main>
-        <Footer />
-        <Toast
-          show={toast.show}
-          type={toast.type}
-          message={toast.message}
-          onClose={hideToast}
-          duration={toast.duration}
+        <InnerApp
+          Component={Component}
+          pageProps={pageProps}
+          showToast={showToast}
+          hideToast={hideToast}
+          toast={toast}
         />
       </UserProvider>
     </>

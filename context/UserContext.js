@@ -1,45 +1,58 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
-const adminEmail = "ken@hotmail.com"; // CHANGE this to your admin email!
-
-// Util functions for localStorage persistence
-function getUsers() {
-  if (typeof window === "undefined") return {};
-  return JSON.parse(localStorage.getItem("users") || "{}");
-}
-function saveUsers(users) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("users", JSON.stringify(users));
-}
-function getCurrentUser() {
-  if (typeof window === "undefined") return null;
-  return JSON.parse(localStorage.getItem("currentUser") || "null");
-}
-function saveCurrentUser(user) {
-  if (typeof window === "undefined") return;
-  if (user) localStorage.setItem("currentUser", JSON.stringify(user));
-  else localStorage.removeItem("currentUser");
-}
+import { supabase } from "../lib/supabaseClient";
 
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
-  const [user, setUser] = useState(undefined); // undefined at first for SSR
+  const [user, setUser] = useState(undefined);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showInvestModal, setShowInvestModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
+  // On app load, check Supabase Auth session and fetch profile
   useEffect(() => {
-    setUser(getCurrentUser());
+    async function loadUser() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+
+        const composedUser = {
+          id: session.user.id,
+          email: session.user.email,
+          name: profile?.name || "",
+          is_admin: !!profile?.is_admin, // ✅ pulled directly from DB
+          profilePic: profile?.profilePic || "",
+          ...profile,
+        };
+
+        setUser(composedUser);
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("currentUser", JSON.stringify(composedUser));
+        }
+      } else {
+        setUser(null);
+      }
+    }
+
+    loadUser();
   }, []);
+
+  async function fetchProfile(userId) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    return data || {};
+  }
 
   function updateUser(newUser) {
     setUser(newUser);
-    saveCurrentUser(newUser);
-    if (newUser && newUser.email) {
-      const users = getUsers();
-      users[newUser.email] = newUser;
-      saveUsers(users);
+    if (typeof window !== "undefined") {
+      if (newUser)
+        window.sessionStorage.setItem("currentUser", JSON.stringify(newUser));
+      else
+        window.sessionStorage.removeItem("currentUser");
     }
   }
 
@@ -47,47 +60,71 @@ export function UserProvider({ children }) {
     throw new Error(message);
   }
 
+  // Register using Supabase Auth and create profile
   async function register({ name, email, password }) {
-    await new Promise(r => setTimeout(r, 700));
-    const users = getUsers();
     if (!email || !password || !name) throwError("All fields are required.");
-    if (users[email]) throwError("Email already registered.");
-    const newUser = {
-      name,
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      isAdmin: email === adminEmail,
-      portfolio: {},
-      transactions: [],
-      created_at: new Date().toISOString(),
+    });
+    if (error) throwError(error.message || "Could not register user.");
+    if (!data.user) throwError("Registration failed.");
+
+    // Create profile
+    const { error: profileError } = await supabase.from("profiles").insert([
+      {
+        id: data.user.id,
+        name,
+        email,
+        is_admin: false, // ✅ default to false (set manually in dashboard or SQL later)
+      },
+    ]);
+    if (profileError)
+      throwError(profileError.message || "Could not create user profile.");
+
+    const userObj = {
+      id: data.user.id,
+      email: data.user.email,
+      name,
+      is_admin: false,
+      profilePic: "",
     };
-    users[email] = newUser;
-    saveUsers(users);
-    saveCurrentUser(newUser);
-    setUser(newUser);
-    return newUser;
+    updateUser(userObj);
+    return userObj;
   }
 
+  // Login using Supabase Auth and fetch profile
   async function login({ email, password }) {
-    await new Promise(r => setTimeout(r, 700));
-    const users = getUsers();
     if (!email || !password) throwError("Please enter email and password.");
-    const foundUser = users[email];
-    if (!foundUser || foundUser.password !== password) throwError("Invalid email or password.");
-    // Update admin flag if admin email
-    if (email === adminEmail && !foundUser.isAdmin) {
-      foundUser.isAdmin = true;
-      users[email] = foundUser;
-      saveUsers(users);
-    }
-    saveCurrentUser(foundUser);
-    setUser(foundUser);
-    return foundUser;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throwError(error.message || "Invalid email or password.");
+    if (!data.user) throwError("Login failed.");
+
+    const profile = await fetchProfile(data.user.id);
+    const userObj = {
+      id: data.user.id,
+      email: data.user.email,
+      name: profile?.name || "",
+      is_admin: !!profile?.is_admin,
+      profilePic: profile?.profilePic || "",
+      ...profile,
+    };
+    updateUser(userObj);
+    return userObj;
   }
 
-  function logout() {
-    saveCurrentUser(null);
-    setUser(null);
+  async function logout() {
+    await supabase.auth.signOut();
+    updateUser(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("df-messenger-chat-history");
+      window.sessionStorage.removeItem("df-messenger-chat-history");
+    }
   }
 
   // Modal controls

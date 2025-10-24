@@ -1,16 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { useUser } from "../context/UserContext";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-// Chart intervals
+// Chart intervals (changed to 24hrs/5% for Daily)
 const intervals = [
-  { label: "Daily", minutes: 5, rate: 0.05 },
-  { label: "Weekly", minutes: 60, rate: 0.20 },
-  { label: "Monthly", minutes: 120, rate: 0.50 }
+  { label: "Daily", hours: 24, rate: 0.05 },
+  { label: "Weekly", days: 7, rate: 0.20 },
+  { label: "Monthly", days: 30, rate: 0.50 }
 ];
 
 const chartColors = [
@@ -18,19 +17,31 @@ const chartColors = [
 ];
 
 function formatTime(date) {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // Show date as well for long intervals
+  return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-export default function InvestmentGrowthChart() {
-  const { user } = useUser();
-  const chartRef = useRef();
+export default function InvestmentGrowthChart({ investments: propInvestments }) {
+  // Accept investments as prop for better flexibility
+  // Fallback for legacy: try user context if not provided
+  let investments = propInvestments;
+  // If you want to support user context fallback, uncomment below and import useUser
+  // const { user } = useUser();
+  // if (!investments && user) investments = user?.investments;
 
-  const investments = user?.investments?.filter(inv => inv.status === "pending" || inv.status === "success") || [];
+  // Only show success investments for growth
+  investments = investments?.filter(inv => inv.status === "success") || [];
 
   // Interval selection
   const [intervalIdx, setIntervalIdx] = useState(0);
-  const { label, minutes, rate } = intervals[intervalIdx];
-  const INTERVAL_MS = minutes * 60 * 1000;
+  const { label, hours, days, rate } = intervals[intervalIdx];
+  // Calculate ms for interval
+  let INTERVAL_MS = 0;
+  if (typeof hours !== "undefined") INTERVAL_MS = hours * 60 * 60 * 1000;
+  else if (typeof days !== "undefined") INTERVAL_MS = days * 24 * 60 * 60 * 1000;
+  else INTERVAL_MS = 24 * 60 * 60 * 1000; // fallback
+
+  const chartRef = useRef();
 
   // Map investments to keys
   const invKeys = investments.map((inv, idx) => ({
@@ -128,7 +139,12 @@ export default function InvestmentGrowthChart() {
     });
   }
 
-  if (!investments.length) return <p className="text-muted">No investments yet to show growth.</p>;
+  if (!investments.length) return <p className="text-muted">No successful investments yet to show growth.</p>;
+
+  // Display the interval as human readable (e.g., "every 24 hours")
+  let intervalText = "";
+  if (typeof hours !== "undefined") intervalText = `${hours} hour${hours > 1 ? "s" : ""}`;
+  else if (typeof days !== "undefined") intervalText = `${days} day${days > 1 ? "s" : ""}`;
 
   return (
     <div className="chartCard my-5">
@@ -179,7 +195,7 @@ export default function InvestmentGrowthChart() {
         ))}
       </div>
       <span className="chartSubtitle">
-        Interest: <span style={{ color: "#28a745" }}>+{intervals[intervalIdx].rate * 100}%</span> every {intervals[intervalIdx].minutes} min
+        Interest: <span style={{ color: "#28a745" }}>+{intervals[intervalIdx].rate * 100}%</span> every {intervalText}
       </span>
     </div>
   );

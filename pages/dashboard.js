@@ -9,7 +9,8 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (user === undefined) return;
     if (!user) router.replace("/");
-    if (user && user.isAdmin) router.replace("/admin");
+    // Updated: isAdmin ➔ is_admin
+    if (user && user.is_admin) router.replace("/admin");
   }, [user, router]);
 
   if (user === undefined) return <div>Loading...</div>;

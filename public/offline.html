@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline | BitBuy</title>
+    <link rel="icon" href="/images/favicon.png" type="image/png" />
+    <style>
+      body {
+        background: #0e0e0e;
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        margin: 0;
+      }
+      img {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 1.5rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+        color: #f8b400;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        color: #ddd;
+        max-width: 300px;
+        margin-bottom: 1.2rem;
+      }
+      button {
+        background: #f8b400;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #ffc93c;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="/images/favicon.png" alt="BitBuy Logo" />
+    <h1>You’re Offline</h1>
+    <p>Looks like your internet connection was lost. Please reconnect to continue investing securely on BitBuy.</p>
+    <button onclick="window.location.reload()">Try Again</button>
+  </body>
+</html>

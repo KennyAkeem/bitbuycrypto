@@ -1,0 +1,22 @@
+{
+  "name": "BitBuy - Smart Crypto Investment",
+  "short_name": "BitBuy",
+  "description": "Invest smarter with BitBuy — BTC, ETH, and USDT investment platform for secure daily growth.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f8b400",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
