@@ -49,6 +49,7 @@
       "static/chunks/pages/dashboard-6a51f199c7503e65.js"
     ],
     "/profile": [
+<<<<<<< HEAD
       "static/chunks/webpack-e9220e62078bf00a.js",
       "static/chunks/framework-63d16ff2f5e08230.js",
       "static/chunks/main-6d240cc9a01c3d68.js",
@@ -63,6 +64,16 @@
       "static/chunks/framework-63d16ff2f5e08230.js",
       "static/chunks/main-6d240cc9a01c3d68.js",
       "static/chunks/pages/reset-password-b4dd2eb094802fb3.js"
+=======
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/profile.js"
+    ],
+    "/verify-email": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/verify-email.js"
+>>>>>>> 746d84e (Added email verification redirect and stability fixes)
     ]
   },
   "ampFirstPages": []
