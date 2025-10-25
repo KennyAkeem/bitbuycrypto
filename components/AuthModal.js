@@ -160,6 +160,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
     }
 
     try {
+      // call register from UserContext (this signs the user up via Supabase)
       await register({
         name: form.name,
         email: form.email.trim().toLowerCase(),
@@ -169,13 +170,23 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
       resetDialogflowMessengerChat();
       showToast && showToast("success", "Account created!");
 
-      // Wait for session to refresh and profile to be ready
-      await new Promise((r) => setTimeout(r, 1000));
+      // small delay to allow Supabase to finalize session if it will create one
+      await new Promise((r) => setTimeout(r, 900));
 
-      const profile = await fetchCurrentProfile();
+      // Check Supabase session: if email confirmation is required, session will be null
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
+      if (!session) {
+        // No session: user must verify email. Redirect to /verify-email and close modal.
+        router.push("/verify-email");
+        onClose();
+        return;
+      }
+
+      // If session exists, proceed to fetch profile and continue as before
+      const profile = await fetchCurrentProfile();
       const logUserId = profile?.id || session?.user?.id || null;
 
       if (logUserId) {

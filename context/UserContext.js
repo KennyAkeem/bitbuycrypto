@@ -12,7 +12,10 @@ export function UserProvider({ children }) {
   // On app load, check Supabase Auth session and fetch profile
   useEffect(() => {
     async function loadUser() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
 
@@ -20,12 +23,13 @@ export function UserProvider({ children }) {
           id: session.user.id,
           email: session.user.email,
           name: profile?.name || "",
-          is_admin: !!profile?.is_admin, // ✅ pulled directly from DB
+          is_admin: !!profile?.is_admin,
           profilePic: profile?.profilePic || "",
           ...profile,
         };
 
         setUser(composedUser);
+
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem("currentUser", JSON.stringify(composedUser));
         }
@@ -37,22 +41,23 @@ export function UserProvider({ children }) {
     loadUser();
   }, []);
 
+  // Fetch profile by user ID
   async function fetchProfile(userId) {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
+
+    if (error && error.code !== "PGRST116") console.error(error.message);
     return data || {};
   }
 
   function updateUser(newUser) {
     setUser(newUser);
     if (typeof window !== "undefined") {
-      if (newUser)
-        window.sessionStorage.setItem("currentUser", JSON.stringify(newUser));
-      else
-        window.sessionStorage.removeItem("currentUser");
+      if (newUser) window.sessionStorage.setItem("currentUser", JSON.stringify(newUser));
+      else window.sessionStorage.removeItem("currentUser");
     }
   }
 
@@ -60,29 +65,33 @@ export function UserProvider({ children }) {
     throw new Error(message);
   }
 
-  // Register using Supabase Auth and create profile
+  // ✅ Register new user (using Supabase Auth trigger for profiles)
+  // This now sets emailRedirectTo so verification emails send users to /verify-email.
+  // It also only updates local user state if Supabase returned a session (i.e., email confirmation is not required).
   async function register({ name, email, password }) {
     if (!email || !password || !name) throwError("All fields are required.");
+
+    // Build redirect URL for verification links (works in prod and locally)
+    const redirectUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/verify-email`
+        : process.env.NEXT_PUBLIC_SITE_URL
+        ? `${process.env.NEXT_PUBLIC_SITE_URL}/verify-email`
+        : undefined;
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { name }, // store name in user metadata
+        emailRedirectTo: redirectUrl,
+      },
     });
+
     if (error) throwError(error.message || "Could not register user.");
     if (!data.user) throwError("Registration failed.");
 
-    // Create profile
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: data.user.id,
-        name,
-        email,
-        is_admin: false, // ✅ default to false (set manually in dashboard or SQL later)
-      },
-    ]);
-    if (profileError)
-      throwError(profileError.message || "Could not create user profile.");
-
+    // Minimal user object returned from auth
     const userObj = {
       id: data.user.id,
       email: data.user.email,
@@ -90,11 +99,28 @@ export function UserProvider({ children }) {
       is_admin: false,
       profilePic: "",
     };
-    updateUser(userObj);
-    return userObj;
+
+    // If signUp returned a session (no email confirmation required), fetch the real profile and update state
+    if (data.session) {
+      const profile = await fetchProfile(data.user.id);
+      const composedUser = {
+        id: data.user.id,
+        email: data.user.email,
+        name: profile?.name || name,
+        is_admin: !!profile?.is_admin,
+        profilePic: profile?.profilePic || "",
+        ...profile,
+      };
+      updateUser(composedUser);
+      return composedUser;
+    }
+
+    // Otherwise, do not set authenticated user in context (email confirmation is required).
+    // Return a minimal object so callers can detect that verification is needed.
+    return { ...userObj, needsConfirmation: true };
   }
 
-  // Login using Supabase Auth and fetch profile
+  // ✅ Login user and fetch their profile
   async function login({ email, password }) {
     if (!email || !password) throwError("Please enter email and password.");
 
@@ -102,6 +128,7 @@ export function UserProvider({ children }) {
       email,
       password,
     });
+
     if (error) throwError(error.message || "Invalid email or password.");
     if (!data.user) throwError("Login failed.");
 
@@ -114,20 +141,23 @@ export function UserProvider({ children }) {
       profilePic: profile?.profilePic || "",
       ...profile,
     };
+
     updateUser(userObj);
     return userObj;
   }
 
+  // ✅ Logout and clear local data
   async function logout() {
     await supabase.auth.signOut();
     updateUser(null);
+
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("df-messenger-chat-history");
       window.sessionStorage.removeItem("df-messenger-chat-history");
     }
   }
 
-  // Modal controls
+  // ✅ Modal controls
   function openAuthModal() {
     setShowAuthModal(true);
   }
