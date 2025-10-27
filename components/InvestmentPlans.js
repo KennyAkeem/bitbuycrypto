@@ -100,22 +100,7 @@ export default function InvestmentPlans() {
           transform-style: preserve-3d;
         }
 
-        .neon-cursor {
-          position: absolute;
-          width: 300px;
-          height: 300px;
-          background: radial-gradient(circle, rgba(0, 255, 255, 0.2), transparent 70%);
-          pointer-events: none;
-          border-radius: 50%;
-          filter: blur(60px);
-          animation: moveTrail 6s infinite alternate ease-in-out;
-        }
-
-        @keyframes moveTrail {
-          0% { top: 10%; left: 15%; background: radial-gradient(circle, #00e0ff44, transparent 70%); }
-          50% { top: 60%; left: 60%; background: radial-gradient(circle, #ff00ff44, transparent 70%); }
-          100% { top: 20%; left: 80%; background: radial-gradient(circle, #00ff8544, transparent 70%); }
-        }
+  
 
         .container {
           position: relative;
