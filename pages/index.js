@@ -97,24 +97,7 @@ export default function LandingPage({ showToast }) {
         </div>
       </div>
 
-      {/* Topbar */}
-      <div className="container-fluid topbar px-0 d-none d-lg-block ">
-        <div className="container px-0">
-          <div className="row gx-0 align-items-center" style={{ height: 45 }}>
-            <div className="col-lg-8 text-center text-lg-start mb-lg-0 text-light">
-              <div className="d-flex flex-wrap">
-                <a href="#" className="text-light me-4"><i className="fas fa-phone-alt text-light me-2"></i>Bitbuy</a>
-                <a href="#" className="text-light me-0"><i className="fas fa-envelope text-light me-2"></i>Crypto Investment</a>
-              </div>
-            </div>
-            <div className="col-lg-4 text-center text-lg-end">
-              <div className="d-flex align-items-center justify-content-end text-light">
-               Bitbuy - Ultimate Crypto Investment Platform
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       <CryptoPriceMarquee />
       <SimulatedAlert showToast={showToast} />

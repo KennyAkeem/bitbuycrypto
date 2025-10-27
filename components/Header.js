@@ -1,13 +1,14 @@
 import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useUser } from "../context/UserContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Header({ showToast }) {
   const { user, logout } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [startView, setStartView] = useState("login");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const handleNavClick = () => setMenuOpen(false);
   const openModal = (view) => {
@@ -18,16 +19,26 @@ export default function Header({ showToast }) {
 
   const isAdmin = !!(user && (user.is_admin || user.profile?.is_admin));
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <header
-      className="site-header"
+      className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
-        position: "sticky",
+        position: "fixed",
         top: 0,
-        zIndex: 2,
-        background: "#fff",
-        boxShadow: "0 2px 14px 0 rgba(35,89,247,0.06)",
-        borderBottom: "1px solid #e3e7ed",
+        left: 0,
+        width: "100%",
+        zIndex: 50,
+        transition: "all 0.3s ease",
+        background: scrolled ? "#fff" : "rgba(255,255,255,0.85)",
+        backdropFilter: "blur(12px)",
+        boxShadow: scrolled ? "0 2px 14px 0 rgba(35,89,247,0.06)" : "none",
+        borderBottom: scrolled ? "1px solid #e3e7ed" : "none",
       }}
     >
       <nav
@@ -37,6 +48,8 @@ export default function Header({ showToast }) {
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0.75rem 1rem",
+          maxWidth: "1200px",
+          margin: "0 auto",
         }}
       >
         {/* Brand */}
@@ -101,10 +114,7 @@ export default function Header({ showToast }) {
               </button>
             </>
           ) : (
-            <button
-              className="btn-primary"
-              onClick={() => openModal("login")}
-            >
+            <button className="btn-primary" onClick={() => openModal("login")}>
               Login
             </button>
           )}
@@ -138,10 +148,7 @@ export default function Header({ showToast }) {
             </button>
           </div>
         ) : (
-          <button
-            className="btn-primary"
-            onClick={() => openModal("login")}
-          >
+          <button className="btn-primary" onClick={() => openModal("login")}>
             Login
           </button>
         )}
@@ -193,6 +200,10 @@ export default function Header({ showToast }) {
           text-decoration: none;
           color: #333;
           font-weight: 500;
+          transition: color 0.2s ease;
+        }
+        .nav-links a:hover {
+          color: #2359f7;
         }
 
         /* Hamburger icon */
@@ -229,7 +240,7 @@ export default function Header({ showToast }) {
           background: #fff;
           border-top: 1px solid #e3e7ed;
           box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-          transition: max-height 0.3s ease;
+          transition: all 0.3s ease;
           overflow: hidden;
         }
         .mobile-menu.open {
