@@ -2,6 +2,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useEffect, useState, useMemo } from "react";
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
+import AdminActivityLogs from "../components/AdminActivityLogs";
 
 export default function AdminDashboard({ showToast }) {
   const { user } = useUser();
