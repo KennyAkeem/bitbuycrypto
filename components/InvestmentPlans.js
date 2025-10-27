@@ -1,6 +1,6 @@
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 const plans = [
@@ -14,21 +14,30 @@ export default function InvestmentPlans() {
   const { user, openAuthModal } = useUser();
   const router = useRouter();
   const sectionRef = useRef(null);
+
+  // motion values
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
-  const rotateX = useTransform(mouseY, [0, window.innerHeight], [15, -15]);
-  const rotateY = useTransform(mouseX, [0, window.innerWidth], [-15, 15]);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const section = sectionRef.current;
+
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
+
+      const height = window.innerHeight;
+      const width = window.innerWidth;
+      rotateX.set((e.clientY / height) * 30 - 15);
+      rotateY.set((e.clientX / width) * 30 - 15);
     };
+
     section?.addEventListener("mousemove", handleMouseMove);
     return () => section?.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, rotateX, rotateY]);
 
   function handleInvestClick(plan) {
     if (user) router.push("/profile?invest=true");
@@ -188,7 +197,7 @@ export default function InvestmentPlans() {
 
         .range, .duration, .yield {
           font-size: clamp(0.9rem, 2.5vw, 1rem);
-          color: #551919ff;
+          color: #220311ff;
           margin: 6px 0;
         }
 
