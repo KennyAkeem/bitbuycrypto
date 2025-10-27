@@ -1,20 +1,54 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function InvestFooter() {
-  // Animation variants for columns
+  const [activeSection, setActiveSection] = useState("");
+
+  // Scroll spy logic
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ["services", "investment-plans", "testimony", "faq"];
+      let current = "";
+
+      for (let id of sections) {
+        const section = document.getElementById(id);
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top <= 120 && rect.bottom >= 120) {
+            current = id;
+            break;
+          }
+        }
+      }
+      setActiveSection(current);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Animation variants
   const fadeUp = {
     initial: { opacity: 0, y: 40 },
     whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.2 }
+    viewport: { once: true, amount: 0.2 },
   };
 
-  // Sponsor data with colors
+  // Sponsor data
   const sponsors = [
     { src: "/images/banner-coin1.png", alt: "Binance", color: "#F3BA2F" },
     { src: "/images/banner-coin2.png", alt: "Ripple", color: "#00AAE4" },
     { src: "/images/banner-coin3.png", alt: "Coinbase", color: "#1652F0" },
     { src: "/images/banner-coin4.png", alt: "Bitcoin", color: "#F7931A" },
+  ];
+
+  // Footer nav items
+  const navItems = [
+    { id: "services", label: "Services" },
+    { id: "investment-plans", label: "Investment Plans" },
+    { id: "testimony", label: "Testimonials" },
+    { id: "faq", label: "FAQ" },
   ];
 
   return (
@@ -83,6 +117,7 @@ export default function InvestFooter() {
           >
             Explore
           </motion.h4>
+
           <motion.ul
             className="footer-link-group"
             initial={{ opacity: 0, y: 18 }}
@@ -90,10 +125,26 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <li><a href="#"><i className="fas fa-angle-right"></i>Home</a></li>
-            <li><a href="#"><i className="fas fa-angle-right"></i>Services</a></li>
-            <li><a href="#"><i className="fas fa-angle-right"></i>About Us</a></li>
-            <li><a href="#"><i className="fas fa-angle-right"></i>Invest</a></li>
+            {navItems.map((section) => (
+              <li key={section.id}>
+                <a
+                  href={`#${section.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document
+                      .getElementById(section.id)
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`footer-link transition-colors duration-300 ${
+                    activeSection === section.id
+                      ? "text-[#1bc6ff] font-semibold"
+                      : "text-gray-300 hover:text-[#1bc6ff]"
+                  }`}
+                >
+                  <i className="fas fa-angle-right mr-1"></i> {section.label}
+                </a>
+              </li>
+            ))}
           </motion.ul>
         </motion.div>
 
@@ -117,10 +168,23 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <li><a href="#"><i className="fas fa-map-marker-alt"></i> 540 Street, New York, USA</a></li>
-            <li><a href="#"><i className="fas fa-envelope"></i> example@email.com</a></li>
-            <li><a href="#"><i className="fas fa-phone"></i> +1234567890</a></li>
+            <li>
+              <a href="#">
+                <i className="fas fa-map-marker-alt"></i> 540 Street, New York, USA
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i className="fas fa-envelope"></i> binance.net.inc@gmail.com
+              </a>
+            </li>
+            <li>
+              <a href="#">
+                <i className="fas fa-phone"></i> +1 5667 8756 467
+              </a>
+            </li>
           </motion.ul>
+
           <motion.div
             className="footer-socials"
             initial={{ opacity: 0, y: 14 }}
@@ -128,10 +192,20 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 0.6, delay: 0.15 }}
           >
-            <motion.a className="social-icon" href="#" whileHover={{ scale: 1.13, backgroundColor: "#1bc6ff" }} transition={{ type: "spring", stiffness: 240 }}><i className="fab fa-facebook-f"></i></motion.a>
-            <motion.a className="social-icon" href="#" whileHover={{ scale: 1.13, backgroundColor: "#1bc6ff" }} transition={{ type: "spring", stiffness: 240 }}><i className="fab fa-twitter"></i></motion.a>
-            <motion.a className="social-icon" href="#" whileHover={{ scale: 1.13, backgroundColor: "#1bc6ff" }} transition={{ type: "spring", stiffness: 240 }}><i className="fab fa-instagram"></i></motion.a>
-            <motion.a className="social-icon" href="#" whileHover={{ scale: 1.13, backgroundColor: "#1bc6ff" }} transition={{ type: "spring", stiffness: 240 }}><i className="fab fa-linkedin-in"></i></motion.a>
+            {["facebook-f", "twitter", "instagram", "linkedin-in"].map((icon, i) => (
+              <motion.a
+                key={i}
+                className="social-icon"
+                href="#"
+                whileHover={{
+                  scale: 1.13,
+                  backgroundColor: "#1bc6ff",
+                }}
+                transition={{ type: "spring", stiffness: 240 }}
+              >
+                <i className={`fab fa-${icon}`}></i>
+              </motion.a>
+            ))}
           </motion.div>
         </motion.div>
 
@@ -177,7 +251,8 @@ export default function InvestFooter() {
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <span>
-          © 2025 Bitbuy Invest. All rights reserved. | Designed by <a href="#">HRH</a>
+          © 2025 Bitbuy Invest. All rights reserved. | Designed by{" "}
+          <a href="#">HRH</a>
         </span>
       </motion.div>
     </motion.footer>

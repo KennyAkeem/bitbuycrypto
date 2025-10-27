@@ -1,330 +1,265 @@
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
-
-/*
-  Modern, responsive Investment Plans component (updated).
-  - Expanded plans from $100 up to $100,000
-  - Reasonable duration and yield progression (lower stake = shorter/safer-ish yield, higher tiers = longer/higher yield)
-  - Same modern styling, icons and animations as before
-*/
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 const plans = [
-  { id: "micro", name: "Micro", amount: "$100", duration: "3 days", yield: "+15%", accent: "#06b6d4", icon: "spark" },
-  { id: "starter", name: "Starter", amount: "$500", duration: "3 days", yield: "+18%", accent: "#0ea5a4", icon: "bolt" },
-  { id: "basic", name: "Basic", amount: "$1,000", duration: "4 days", yield: "+30%", accent: "#06b6d4", icon: "shield" },
-  { id: "bronze", name: "Bronze", amount: "$10,000", duration: "5 days", yield: "+35%", accent: "#c2410c", icon: "shield" },
-  { id: "silver", name: "Silver", amount: "$25,000", duration: "6 days", yield: "+40%", accent: "#64748b", icon: "bolt" },
-  { id: "gold", name: "Gold", amount: "$50,000", duration: "7 days", yield: "+45%", accent: "#f59e0b", icon: "star" },
-  { id: "platinum", name: "Platinum", amount: "$100,000", duration: "10 days", yield: "+50%", accent: "#7c3aed", icon: "crown" },
+  { id: "starter", name: "Starter Plan", range: "$100 - $9,999", duration: "30 days", yield: "5% daily", accent: "#00e0ff" },
+  { id: "growth", name: "Growth Plan", range: "$10,000 - $49,999", duration: "45 days", yield: "8% daily", accent: "#00ff85" },
+  { id: "premium", name: "Premium Plan", range: "$50,000 - $250,000", duration: "60 days", yield: "10% daily", accent: "#ffd500" },
+  { id: "elite", name: "Elite Plan", range: "$251,000 - ∞", duration: "90 days", yield: "12% daily", accent: "#ff00ff" },
 ];
-
-function Icon({ name, color }) {
-  const common = { width: 40, height: 40, viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg" };
-  switch (name) {
-    case "spark":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M12 2v4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M12 18v4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M4.9 4.9l2.8 2.8" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M16.3 16.3l2.8 2.8" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="12" cy="12" r="3.2" stroke={color} strokeWidth="1.6" />
-        </svg>
-      );
-    case "shield":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M12 2l7 4v5c0 5-3.6 9.8-7 11-3.4-1.2-7-6-7-11V6l7-4z" stroke={color} strokeWidth="1.2" strokeLinejoin="round" fill="rgba(0,0,0,0.03)" />
-          <path d="M9 12l2 2 4-4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case "bolt":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" stroke={color} strokeWidth="1.2" strokeLinejoin="round" fill="rgba(0,0,0,0.03)" />
-        </svg>
-      );
-    case "star":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M12 2l2.6 5.9L21 9l-4.5 3.7L17.2 21 12 17.8 6.8 21l.7-8.3L3 9l6.4-1.1L12 2z" stroke={color} strokeWidth="1.0" strokeLinejoin="round" fill="rgba(0,0,0,0.03)" />
-        </svg>
-      );
-    case "crown":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M3 11l3-6 5 6 5-6 3 6v7H3v-7z" stroke={color} strokeWidth="1.2" strokeLinejoin="round" fill="rgba(0,0,0,0.02)" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
 
 export default function InvestmentPlans() {
   const { user, openAuthModal } = useUser();
   const router = useRouter();
+  const sectionRef = useRef(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useTransform(mouseY, [0, window.innerHeight], [15, -15]);
+  const rotateY = useTransform(mouseX, [0, window.innerWidth], [-15, 15]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const handleMouseMove = (e) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+    section?.addEventListener("mousemove", handleMouseMove);
+    return () => section?.removeEventListener("mousemove", handleMouseMove);
+  }, [mouseX, mouseY]);
 
   function handleInvestClick(plan) {
-    if (user) {
-      router.push("/profile?invest=true");
-    } else {
-      openAuthModal && openAuthModal();
-    }
+    if (user) router.push("/profile?invest=true");
+    else openAuthModal && openAuthModal();
   }
 
   return (
     <motion.section
+      ref={sectionRef}
       className="investment-section"
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.8 }}
+      style={{ rotateX, rotateY }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
     >
+      <div className="neon-cursor"></div>
       <div className="container">
         <header className="section-head">
-          <p className="eyebrow">Investment Plans</p>
-          <h2 className="title">Choose the plan that suits your ambition</h2>
-          <p className="subtitle">Short-term, high-yield crypto investment plans with transparent durations and payouts.</p>
+          <h2 className="title">🚀 Investment Plans</h2>
+          <p className="subtitle">
+            Choose from our futuristic high-yield investment tiers — built for the new era of finance.
+          </p>
         </header>
 
         <div className="grid">
-          {plans.map((plan, idx) => {
-            const featured = plan.id === "gold" || plan.id === "platinum";
-            return (
-              <motion.article
-                key={plan.id}
-                className={`card ${featured ? "card-featured" : ""}`}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.18 }}
-                transition={{ type: "spring", stiffness: 160, damping: 18, delay: idx * 0.08 }}
-                whileHover={{ translateY: -8, boxShadow: "0 18px 40px rgba(16,24,40,0.12)" }}
-                role="region"
-                aria-labelledby={`plan-${plan.id}`}
-              >
-                <div className="card-top">
-                  <div className="icon-wrap" style={{ background: `${plan.accent}22`, boxShadow: `inset 0 0 18px ${plan.accent}11` }}>
-                    <Icon name={plan.icon} color={plan.accent} />
-                  </div>
-                  <div className="plan-meta">
-                    <h3 id={`plan-${plan.id}`} className="plan-name">{plan.name}</h3>
-                    <div className="plan-badge" style={{ background: `${plan.accent}1a`, color: plan.accent }}>
-                      {featured ? "Popular" : "Standard"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card-body">
-                  <div className="amount">{plan.amount}</div>
-                  <ul className="features" aria-hidden>
-                    <li>
-                      <span className="feature-label">Duration</span>
-                      <span className="feature-value">{plan.duration}</span>
-                    </li>
-                    <li>
-                      <span className="feature-label">Yield</span>
-                      <span className="feature-value">{plan.yield}</span>
-                    </li>
-                    <li>
-                      <span className="feature-label">Min. Invest</span>
-                      <span className="feature-value">{plan.amount}</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="card-footer">
-                  <button
-                    className="cta"
-                    onClick={() => handleInvestClick(plan)}
-                    aria-label={`Invest now in ${plan.name} plan`}
-                  >
-                    Invest Now
-                    <svg className="cta-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                      <path d="M5 12h14M13 5l6 7-6 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
-              </motion.article>
-            );
-          })}
+          {plans.map((plan, idx) => (
+            <motion.article
+              key={plan.id}
+              className="card"
+              style={{ "--accent": plan.accent }}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.15, type: "spring", stiffness: 100 }}
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="glow"></div>
+              <div className="card-body">
+                <h3 className="plan-name">{plan.name}</h3>
+                <p className="range">{plan.range}</p>
+                <p className="duration">{plan.duration}</p>
+                <p className="yield">{plan.yield}</p>
+              </div>
+              <button className="cta" onClick={() => handleInvestClick(plan)}>
+                Invest Now <span className="arrow">→</span>
+              </button>
+            </motion.article>
+          ))}
         </div>
       </div>
 
       <style jsx>{`
         .investment-section {
-          padding: 64px 0;
-          background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+          position: relative;
+          padding: clamp(60px, 10vw, 120px) 20px;
+          background: radial-gradient(circle at 20% 20%, #05010f, #000);
+          overflow: hidden;
+          color: white;
+          perspective: 1000px;
+          transform-style: preserve-3d;
+        }
+
+        .neon-cursor {
+          position: absolute;
+          width: 300px;
+          height: 300px;
+          background: radial-gradient(circle, rgba(0, 255, 255, 0.2), transparent 70%);
+          pointer-events: none;
+          border-radius: 50%;
+          filter: blur(60px);
+          animation: moveTrail 6s infinite alternate ease-in-out;
+        }
+
+        @keyframes moveTrail {
+          0% { top: 10%; left: 15%; background: radial-gradient(circle, #00e0ff44, transparent 70%); }
+          50% { top: 60%; left: 60%; background: radial-gradient(circle, #ff00ff44, transparent 70%); }
+          100% { top: 20%; left: 80%; background: radial-gradient(circle, #00ff8544, transparent 70%); }
         }
 
         .container {
-          max-width: 1140px;
+          position: relative;
+          z-index: 2;
+          max-width: 1200px;
           margin: 0 auto;
-          padding: 0 18px;
+          text-align: center;
         }
 
-        .section-head {
-          text-align: center;
-          max-width: 820px;
-          margin: 0 auto 36px;
-        }
-        .eyebrow {
-          font-weight: 700;
-          color: #2563eb;
-          letter-spacing: 0.4px;
-          margin-bottom: 10px;
-        }
         .title {
-          font-size: 1.9rem;
-          margin: 0 0 8px;
-          color: #0f172a;
+          font-size: clamp(1.8rem, 4vw, 2.8rem);
+          background: linear-gradient(90deg, #00e0ff, #ff00ff);
+          -webkit-background-clip: text;
+          color: transparent;
+          text-shadow: 0 0 20px #00e0ff66;
+          margin-bottom: 10px;
+          animation: glowPulse 3s infinite ease-in-out;
         }
+
+        @keyframes glowPulse {
+          0%, 100% { text-shadow: 0 0 15px #00e0ff66; }
+          50% { text-shadow: 0 0 30px #ff00ffaa; }
+        }
+
         .subtitle {
-          margin: 0;
-          color: #475569;
+          color: #b3b3b3;
+          margin-bottom: 50px;
+          font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+          line-height: 1.6;
         }
 
         .grid {
           display: grid;
-          grid-template-columns: repeat(1, 1fr);
-          gap: 18px;
-          margin-top: 22px;
-        }
-
-        @media (min-width: 640px) {
-          .grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        }
-        @media (min-width: 992px) {
-          .grid { grid-template-columns: repeat(3, 1fr); gap: 22px; }
-        }
-        @media (min-width: 1200px) {
-          .grid { grid-template-columns: repeat(4, 1fr); gap: 26px; }
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 28px;
+          justify-content: center;
+          align-items: stretch;
         }
 
         .card {
-          background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.7));
-          border-radius: 14px;
-          padding: 16px;
-          border: 1px solid rgba(15,23,42,0.04);
-          display: flex;
-          flex-direction: column;
-          min-height: 280px;
-          transition: transform 180ms ease, box-shadow 220ms ease;
           position: relative;
-          overflow: visible;
+          border: 1px solid var(--accent);
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.04);
+          box-shadow: 0 0 30px rgba(0, 255, 255, 0.15);
+          padding: 30px 20px 50px;
+          backdrop-filter: blur(15px);
+          overflow: hidden;
+          transition: all 0.4s ease;
         }
 
-        .card-featured {
-          border: none;
-          background: linear-gradient(180deg, rgba(124,58,237,0.06), rgba(124,58,237,0.03));
-          outline: 1px solid rgba(124,58,237,0.06);
+        .card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(120deg, transparent, var(--accent), transparent);
+          opacity: 0.5;
+          transform: translateX(-100%);
+          transition: all 0.6s ease;
         }
 
-        .card-top {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 12px;
+        .card:hover::before {
+          transform: translateX(100%);
         }
 
-        .icon-wrap {
-          width: 64px;
-          height: 64px;
-          border-radius: 12px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          transform: translateZ(0);
+        .card:hover {
+          box-shadow: 0 0 45px var(--accent);
+          transform: translateY(-5px);
         }
 
-        .plan-meta {
-          display: flex;
-          flex-direction: column;
-        }
         .plan-name {
-          font-size: 1.05rem;
-          margin: 0;
-          color: #0f172a;
-          font-weight: 700;
-        }
-        .plan-badge {
-          font-size: 12px;
-          margin-top: 6px;
-          padding: 4px 8px;
-          border-radius: 999px;
-          display: inline-block;
-        }
-
-        .card-body {
-          margin-top: 8px;
-          flex: 1;
-        }
-
-        .amount {
-          font-size: 1.45rem;
+          font-size: clamp(1.1rem, 2.5vw, 1.4rem);
           font-weight: 800;
-          color: #0b1220;
+          color: var(--accent);
           margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
         }
 
-        .features {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: grid;
-          gap: 8px;
+        .range, .duration, .yield {
+          font-size: clamp(0.9rem, 2.5vw, 1rem);
+          color: #551919ff;
+          margin: 6px 0;
         }
-        .features li {
-          display: flex;
-          justify-content: space-between;
-          color: #334155;
-          font-weight: 600;
-          padding: 8px;
-          border-radius: 8px;
-          background: rgba(15,23,42,0.02);
-        }
-        .feature-label { opacity: 0.85; font-weight: 600; }
-        .feature-value { font-weight: 800; color: #0f172a; }
 
-        .card-footer {
-          margin-top: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .yield {
+          color: var(--accent);
+          font-weight: 700;
+          text-shadow: 0 0 12px var(--accent);
         }
 
         .cta {
-          display: inline-flex;
-          gap: 10px;
-          align-items: center;
-          justify-content: center;
-          padding: 10px 16px;
-          background: linear-gradient(90deg, #2563eb, #1d4ed8);
-          color: white;
+          margin-top: 20px;
+          background: linear-gradient(90deg, var(--accent), #ffffff);
+          color: #000;
           border: none;
-          border-radius: 999px;
           font-weight: 800;
+          padding: 12px 28px;
+          border-radius: 999px;
           cursor: pointer;
-          box-shadow: 0 8px 20px rgba(37,99,235,0.12);
-          transition: transform 180ms ease, box-shadow 220ms ease, background 200ms ease;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          font-size: 0.95rem;
         }
-        .cta:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(16,24,40,0.12); }
-        .cta:active { transform: translateY(-1px) scale(0.995); }
 
-        .cta-arrow { opacity: 0.9; transform: translateX(0); transition: transform 220ms ease; }
-        .cta:hover .cta-arrow { transform: translateX(4px); }
+        .cta::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle, white 0%, transparent 70%);
+          transform: scale(0);
+          opacity: 0.3;
+          transition: transform 0.3s ease;
+        }
 
-        .card-featured .plan-name { color: #5b21b6; }
-        .card-featured .amount { color: #3b0764; }
-        .card-featured .cta { background: linear-gradient(90deg,#7c3aed,#4c1d95); box-shadow: 0 18px 50px rgba(124,58,237,0.12); }
+        .cta:hover::after {
+          transform: scale(4);
+        }
+
+        .cta:hover {
+          background: linear-gradient(90deg, #fff, var(--accent));
+          transform: translateY(-3px);
+          box-shadow: 0 0 20px var(--accent);
+        }
+
+        .arrow {
+          margin-left: 8px;
+          display: inline-block;
+          transition: transform 0.2s ease;
+        }
+
+        .cta:hover .arrow {
+          transform: translateX(4px);
+        }
+
+        @media (max-width: 768px) {
+          .investment-section {
+            padding: 70px 15px;
+          }
+          .cta {
+            width: 100%;
+            font-size: 1rem;
+          }
+        }
 
         @media (max-width: 480px) {
-          .container { padding-left: 12px; padding-right: 12px; }
-          .card { padding: 14px; min-height: 260px; }
-          .icon-wrap { width: 56px; height: 56px; }
-          .amount { font-size: 1.25rem; }
+          .grid {
+            gap: 18px;
+          }
+          .card {
+            padding: 24px 16px 40px;
+          }
         }
       `}</style>
     </motion.section>

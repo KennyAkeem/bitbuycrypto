@@ -1,72 +1,80 @@
 import Slider from "react-slick";
+import { motion } from "framer-motion";
 
 const slides = [
   {
     img: "/images/carousel-1.jpg",
-    caption: "The most prestigious Investments company.",
-    description: "Invest with ease and security in BTC, ETH, and USDT",
-    cta: "Apply Now"
+    caption: "The Most Prestigious Investments Company",
+    description: "Invest with confidence in BTC, ETH, and USDT — fast, secure, and reliable.",
+    cta: "Apply Now",
   },
   {
     img: "/images/carousel-2.jpg",
-    caption: "Real-Time Crypto Prices",
-    description: "Stay updated with live prices and global transaction alerts.",
-    cta: "Start Investing"
+    caption: "Real-Time Crypto Insights",
+    description: "Stay ahead with live crypto price tracking and instant transaction updates.",
+    cta: "Start Investing",
   },
   {
     img: "/images/carousel-3.jpg",
-    caption: "Admin-Approved Investments",
-    description: "All transactions are manually reviewed for your safety.",
-    cta: "Read More"
-  }
+    caption: "Admin-Approved Transactions",
+    description: "Every investment is reviewed manually for your safety and transparency.",
+    cta: "Read More",
+  },
 ];
 
 export default function HeroCarousel({ onApply }) {
   const settings = {
     dots: true,
     infinite: true,
-    speed: 700,
+    speed: 1000,
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 6000,
-    arrows: true,
+    arrows: false,
+    fade: true,
+    pauseOnHover: false,
     adaptiveHeight: true,
-    fade: true
   };
 
   return (
-    <div className="hero-carousel-outer mb-6">
+    <div className="hero-carousel-outer mb-8">
       <Slider {...settings}>
         {slides.map((slide, idx) => (
           <div key={idx}>
             <div className="carousel-slide-container">
-              <img
+              <motion.img
                 src={slide.img}
                 alt={slide.caption}
                 className="carousel-slide-img"
+                initial={{ scale: 1 }}
+                animate={{ scale: 1.05 }}
+                transition={{ duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
               />
-              <div className="carousel-caption-future">
+
+              <motion.div
+                className="carousel-caption-future"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
                 <h1 className="carousel-caption-title">{slide.caption}</h1>
                 <p className="carousel-caption-desc">{slide.description}</p>
-                <button
+                <motion.button
                   className="carousel-caption-btn"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={onApply}
                 >
                   {slide.cta}
-                </button>
-              </div>
-
-              {/* Neon overlay glow */}
-              <div className="carousel-glow-left"></div>
-              <div className="carousel-glow-right"></div>
+                </motion.button>
+              </motion.div>
             </div>
           </div>
         ))}
       </Slider>
 
       <style jsx global>{`
-        /* Base container */
         .hero-carousel-outer {
           border-radius: 18px;
           overflow: hidden;
@@ -76,155 +84,92 @@ export default function HeroCarousel({ onApply }) {
 
         .carousel-slide-container {
           position: relative;
+          height: 100%;
         }
 
-        /* Responsive image scaling */
         .carousel-slide-img {
           width: 100%;
-          height: clamp(180px, 50vw, 480px);
+          height: clamp(220px, 55vw, 550px);
           object-fit: cover;
           border-radius: 18px;
-          filter: brightness(0.65) blur(0.4px);
-          transition: transform 1.5s ease-in-out;
+          filter: brightness(0.6);
         }
 
-        .carousel-slide-container:hover .carousel-slide-img {
-          transform: scale(1.03);
-        }
-
-        /* Caption glass block */
         .carousel-caption-future {
           position: absolute;
-          left: clamp(3vw, 6vw, 10vw);
-          top: clamp(8%, 16%, 20%);
-          width: clamp(75vw, 70%, 680px);
-          background: rgba(14, 20, 40, 0.25);
-          border-left: 4px solid #1bc6ff99;
+          left: 6%;
+          bottom: 15%;
+          width: clamp(75vw, 70%, 650px);
+          background: rgba(10, 20, 40, 0.4);
+          border: 1px solid #1bc6ff55;
           border-radius: 16px;
-          box-shadow: 0 0 35px #1bc6ff33;
+          padding: 1.5rem 2rem;
+          backdrop-filter: blur(10px);
           color: #fff;
-          text-shadow: 0 0 12px #00fff7bb;
-          padding: clamp(1.2rem, 2vw, 2.3rem);
-          backdrop-filter: blur(3px);
-          z-index: 10;
+          box-shadow: 0 0 40px #00fff722;
         }
 
         .carousel-caption-title {
-          font-family: 'Orbitron', 'Montserrat', 'Segoe UI', sans-serif;
+          font-family: 'Orbitron', 'Montserrat', sans-serif;
           font-weight: 700;
-          font-size: clamp(1.2rem, 3vw, 2.4rem);
-          letter-spacing: 2px;
-          margin-bottom: 0.9rem;
-          background: linear-gradient(90deg, #15e0ff 30%, #fff 90%);
+          font-size: clamp(1.4rem, 3.5vw, 2.6rem);
+          background: linear-gradient(90deg, #00fff7, #1bc6ff);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          background-clip: text;
-          filter: drop-shadow(0 2px 10px #00fff7cc);
+          margin-bottom: 0.7rem;
+          letter-spacing: 1.5px;
         }
 
         .carousel-caption-desc {
-          font-size: clamp(0.9rem, 1.5vw, 1.2rem);
-          letter-spacing: 1.1px;
+          font-size: clamp(0.95rem, 1.5vw, 1.2rem);
           color: #e0f7fa;
-          margin-bottom: 1.1rem;
-          line-height: 1.5;
+          margin-bottom: 1.2rem;
+          line-height: 1.6;
         }
 
         .carousel-caption-btn {
           background: linear-gradient(90deg, #00fff7 10%, #1bc6ff 90%);
           color: #111;
           border: none;
-          border-radius: 100px;
-          font-family: 'Orbitron', 'Montserrat', Arial, sans-serif;
+          border-radius: 50px;
           font-weight: 600;
-          letter-spacing: 2px;
-          font-size: clamp(0.8rem, 1.4vw, 1.1rem);
-          padding: clamp(0.6rem, 1.2vw, 0.9rem) clamp(1.8rem, 3vw, 2.6rem);
-          box-shadow: 0 0 22px #1bc6ff66;
+          letter-spacing: 1.5px;
+          padding: 0.8rem 2rem;
+          font-family: 'Orbitron', sans-serif;
+          box-shadow: 0 0 25px #00fff766;
+          cursor: pointer;
           transition: all 0.3s ease-in-out;
         }
 
         .carousel-caption-btn:hover {
           background: linear-gradient(90deg, #fff 10%, #1bc6ff 90%);
-          color: #00fff7;
-          box-shadow: 0 0 30px 8px #00fff7aa;
+          color: #ff0055ff;
+          box-shadow: 0 0 30px 10px #00fff788;
         }
 
-        /* Glow lights */
-        .carousel-glow-left,
-        .carousel-glow-right {
-          position: absolute;
-          top: 15%;
-          width: 60px;
-          height: 70%;
-          z-index: 5;
-          pointer-events: none;
-        }
-
-        .carousel-glow-left {
-          left: 0;
-          background: radial-gradient(circle at 0 50%, #00fff722 50%, transparent 90%);
-        }
-
-        .carousel-glow-right {
-          right: 0;
-          background: radial-gradient(circle at 100% 50%, #1bc6ff33 50%, transparent 90%);
-        }
-
-        /* Slick dots & arrows */
         .slick-dots li button:before {
-          font-size: 13px;
+          font-size: 12px;
           color: #1bc6ff;
-          opacity: 1;
+          opacity: 0.8;
         }
         .slick-dots li.slick-active button:before {
           color: #00fff7;
-          text-shadow: 0 0 8px #00fff7cc;
-        }
-        .slick-arrow {
-          z-index: 20;
-          width: 45px;
-          height: 45px;
-          background: linear-gradient(135deg, #1bc6ff88, #00fff722);
-          border-radius: 50%;
-          box-shadow: 0 0 18px #1bc6ff44;
-        }
-        .slick-prev:before,
-        .slick-next:before {
-          color: #00fff7;
-          font-size: 28px;
-          text-shadow: 0 0 10px #00fff7cc;
+          opacity: 1;
+          text-shadow: 0 0 10px #00fff7aa;
         }
 
-        /* Mobile optimization */
         @media (max-width: 700px) {
           .carousel-caption-future {
-            top: 8%;
-            width: 92vw;
-            left: 4vw;
-            padding: 1rem 1rem 0.8rem;
-            border-left: 2px solid #1bc6ff77;
+            bottom: 10%;
+            left: 4%;
+            width: 90%;
+            padding: 1rem 1.2rem;
+            border-radius: 14px;
           }
-          .carousel-glow-left,
-          .carousel-glow-right {
-            display: none;
-          }
+
           .carousel-caption-btn {
             width: 100%;
-            text-align: center;
-            padding: 0.6rem 0;
           }
-        }
-
-        @media (max-width: 450px) {
-          .carousel-caption-future {
-            width: 100%;
-            left: 0;
-            border-radius: 0 0 12px 12px;
-            padding: 0.8rem 0.9rem;
-          }
-            .carousel-caption-btn{
-            display:none;}
         }
       `}</style>
 

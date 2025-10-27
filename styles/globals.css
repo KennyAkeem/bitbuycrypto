@@ -1322,3 +1322,7 @@ df-messenger {
   to { transform: translateY(0) scale(1); opacity:1; }
 }
 
+.footer-link.active-link {
+  color: #1bc6ff;
+  font-weight: 600;
+}

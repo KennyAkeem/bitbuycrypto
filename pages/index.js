@@ -97,21 +97,22 @@ export default function LandingPage({ showToast }) {
         </div>
       </div>
 
-      
+      <br />
+      <br />
 
       <CryptoPriceMarquee />
       <SimulatedAlert showToast={showToast} />
 
       {/* Carousel */}
       <HeroCarousel onApply={() => { setAuthView("profile"); setShowModal(false); }} />
-      <ServicesSection />
+      <section id="services"><ServicesSection /></section>
       
     <br />
 
     
 
       {/* Investment Plans Section */}
-      <InvestmentPlans />
+      <section id="investment-plans"><InvestmentPlans /></section>
  <br /> <br />
 {/*VideoSection*/}
  <VideoSection />
@@ -123,13 +124,14 @@ export default function LandingPage({ showToast }) {
 
 
 {/* TestimonialCarousl */}
-<TestimonialCarousel />
+<section id="testimony"><TestimonialCarousel /></section>
 
  <br />
   <br />
   
 {/* FAQ Section */}
-<FAQSection />
+<section id="faq"><FAQSection /></section>
+
 
 
 

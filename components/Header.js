@@ -9,19 +9,42 @@ export default function Header({ showToast }) {
   const [startView, setStartView] = useState("login");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
-  const handleNavClick = () => setMenuOpen(false);
+  const handleNavClick = (sectionId) => {
+    setMenuOpen(false);
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   const openModal = (view) => {
     setStartView(view);
     setShowModal(true);
-    handleNavClick();
+    setMenuOpen(false);
   };
 
   const isAdmin = !!(user && (user.is_admin || user.profile?.is_admin));
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+      const sections = ["services", "investment-plans", "testimony", "faq"];
+      let current = "";
+      for (let id of sections) {
+        const section = document.getElementById(id);
+        if (section) {
+          const offsetTop = section.offsetTop - 100;
+          const offsetBottom = offsetTop + section.offsetHeight;
+          if (window.scrollY >= offsetTop && window.scrollY < offsetBottom) {
+            current = id;
+            break;
+          }
+        }
+      }
+      setActiveSection(current);
+    };
     window.addEventListener("scroll", handleScroll);
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -35,10 +58,11 @@ export default function Header({ showToast }) {
         width: "100%",
         zIndex: 50,
         transition: "all 0.3s ease",
-        background: scrolled ? "#fff" : "rgba(255,255,255,0.85)",
-        backdropFilter: "blur(12px)",
-        boxShadow: scrolled ? "0 2px 14px 0 rgba(35,89,247,0.06)" : "none",
-        borderBottom: scrolled ? "1px solid #e3e7ed" : "none",
+        background: scrolled
+          ? "linear-gradient(90deg, #0a1a3a, #001f52)"
+          : "linear-gradient(90deg, rgba(10,26,58,0.85), rgba(0,31,82,0.85))",
+        backdropFilter: "blur(10px)",
+        boxShadow: scrolled ? "0 2px 14px 0 rgba(35,89,247,0.2)" : "none",
       }}
     >
       <nav
@@ -55,7 +79,7 @@ export default function Header({ showToast }) {
         {/* Brand */}
         <Link
           href="/"
-          onClick={handleNavClick}
+          onClick={() => handleNavClick("services")}
           style={{
             textDecoration: "none",
             display: "flex",
@@ -65,7 +89,7 @@ export default function Header({ showToast }) {
         >
           <h1
             style={{
-              color: "#2359f7",
+              color: "#ffffff",
               fontWeight: 700,
               fontSize: "1.8rem",
               margin: 0,
@@ -89,17 +113,25 @@ export default function Header({ showToast }) {
 
         {/* Desktop Links */}
         <div className="nav-links">
-          <Link href="/" onClick={handleNavClick}>
-            Home
-          </Link>
+          {["services", "investment-plans", "testimony", "faq"].map((id) => (
+            <button
+              key={id}
+              onClick={() => handleNavClick(id)}
+              className={`nav-btn ${activeSection === id ? "active" : ""}`}
+            >
+              {id.replace("-", " ").toUpperCase()}
+            </button>
+          ))}
+
           {isAdmin && (
-            <Link href="/admin" onClick={handleNavClick}>
-              Admin
+            <Link href="/admin" onClick={() => setMenuOpen(false)}>
+              <button className="nav-btn">ADMIN</button>
             </Link>
           )}
+
           {user ? (
             <>
-              <Link href="/profile" onClick={handleNavClick}>
+              <Link href="/profile" onClick={() => setMenuOpen(false)}>
                 <button className="btn-outline">Dashboard</button>
               </Link>
               <button
@@ -107,7 +139,7 @@ export default function Header({ showToast }) {
                 onClick={() => {
                   logout();
                   showToast && showToast("success", "Logged out!");
-                  handleNavClick();
+                  setMenuOpen(false);
                 }}
               >
                 Logout
@@ -123,35 +155,47 @@ export default function Header({ showToast }) {
 
       {/* Mobile Menu */}
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
-        <Link href="/" onClick={handleNavClick}>
-          Home
-        </Link>
-        {isAdmin && (
-          <Link href="/admin" onClick={handleNavClick}>
-            Admin
-          </Link>
-        )}
-        {user ? (
-          <div className="mobile-actions">
-            <Link href="/profile" onClick={handleNavClick}>
-              <button className="btn-outline">Dashboard</button>
-            </Link>
+        <nav className="mobile-nav">
+          {["services", "investment-plans", "testimony", "faq"].map((id) => (
             <button
-              className="btn-dark"
-              onClick={() => {
-                logout();
-                showToast && showToast("success", "Logged out!");
-                handleNavClick();
-              }}
+              key={id}
+              className={`mobile-link ${activeSection === id ? "active" : ""}`}
+              onClick={() => handleNavClick(id)}
             >
-              Logout
+              {id.replace("-", " ").toUpperCase()}
             </button>
+          ))}
+
+          {isAdmin && (
+            <Link href="/admin" onClick={() => setMenuOpen(false)}>
+              <button className="mobile-link">ADMIN</button>
+            </Link>
+          )}
+
+          <div className="mobile-actions">
+            {user ? (
+              <>
+                <Link href="/profile" onClick={() => setMenuOpen(false)}>
+                  <button className="btn-outline">Dashboard</button>
+                </Link>
+                <button
+                  className="btn-dark"
+                  onClick={() => {
+                    logout();
+                    showToast && showToast("success", "Logged out!");
+                    setMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button className="btn-primary" onClick={() => openModal("login")}>
+                Login
+              </button>
+            )}
           </div>
-        ) : (
-          <button className="btn-primary" onClick={() => openModal("login")}>
-            Login
-          </button>
-        )}
+        </nav>
       </div>
 
       {/* Auth Modal */}
@@ -164,9 +208,45 @@ export default function Header({ showToast }) {
       )}
 
       <style jsx>{`
-        /* Common button styles */
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        /* Nav Buttons */
+        .nav-btn {
+          background: none;
+          border: none;
+          font-weight: 500;
+          color: #f5f7ff;
+          position: relative;
+          padding: 0.3rem 0;
+          margin: 0 0.8rem;
+          cursor: pointer;
+          transition: color 0.3s ease;
+        }
+        .nav-btn:hover {
+          color: #9cc9ff;
+        }
+        .nav-btn.active {
+          color: #ffffff;
+        }
+        .nav-btn.active::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: -4px;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, #3b82f6, #00b4d8);
+          border-radius: 2px;
+          transition: all 0.3s ease;
+        }
+
+        /* Buttons */
         .btn-primary {
-          background: #2359f7;
+          background: linear-gradient(90deg, #2359f7, #00b4d8);
           color: #fff;
           border: none;
           border-radius: 50px;
@@ -190,23 +270,64 @@ export default function Header({ showToast }) {
           font-weight: 600;
         }
 
-        /* Desktop nav */
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
+        /* Mobile Nav */
+        .mobile-menu {
+          position: fixed;
+          top: 70px;
+          left: 0;
+          width: 100%;
+          transform: translateY(-20px);
+          height: 0;
+          overflow: hidden;
+          background: linear-gradient(135deg, #0a1a3a, #001f52);
+          transition: all 0.4s ease;
+          opacity: 0;
+          z-index: 40;
         }
-        .nav-links a {
-          text-decoration: none;
-          color: #333;
-          font-weight: 500;
-          transition: color 0.2s ease;
-        }
-        .nav-links a:hover {
-          color: #2359f7;
+        .mobile-menu.open {
+          height: calc(100vh - 70px);
+          opacity: 1;
+          transform: translateY(0);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
-        /* Hamburger icon */
+        .mobile-nav {
+          display: flex;
+          flex-direction: column;
+          padding: 2rem 1.5rem;
+          gap: 1.2rem;
+          color: #fff;
+        }
+        .mobile-link {
+          background: none;
+          border: none;
+          color: #e4e8ff;
+          font-size: 1.1rem;
+          font-weight: 600;
+          text-align: left;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .mobile-link:hover {
+          color: #5aa9ff;
+          transform: translateX(5px);
+        }
+        .mobile-link.active {
+          color: #00b4ff;
+          border-left: 3px solid #00b4ff;
+          padding-left: 0.5rem;
+        }
+
+        .mobile-actions {
+          margin-top: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Hamburger */
         .hamburger {
           display: none;
           flex-direction: column;
@@ -219,7 +340,7 @@ export default function Header({ showToast }) {
           display: block;
           height: 3px;
           width: 100%;
-          background: #2359f7;
+          background: #ffffff;
           border-radius: 3px;
           transition: 0.3s;
         }
@@ -233,33 +354,6 @@ export default function Header({ showToast }) {
           transform: translateY(-8px) rotate(-45deg);
         }
 
-        /* Mobile menu */
-        .mobile-menu {
-          display: none;
-          flex-direction: column;
-          background: #fff;
-          border-top: 1px solid #e3e7ed;
-          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
-          transition: all 0.3s ease;
-          overflow: hidden;
-        }
-        .mobile-menu.open {
-          display: flex;
-          padding: 1rem;
-          gap: 0.75rem;
-        }
-        .mobile-menu a {
-          color: #333;
-          text-decoration: none;
-          font-weight: 500;
-        }
-        .mobile-actions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.75rem;
-        }
-
-        /* Responsive */
         @media (max-width: 992px) {
           .nav-links {
             display: none;
