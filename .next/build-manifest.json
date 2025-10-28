@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/Me9UWirXeP8g7NyHId0Q6/_buildManifest.js",
-    "static/Me9UWirXeP8g7NyHId0Q6/_ssgManifest.js"
+    "static/viBbeoAKegVfazGd9i2OA/_buildManifest.js",
+    "static/viBbeoAKegVfazGd9i2OA/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
@@ -15,7 +15,7 @@
       "static/chunks/framework-63d16ff2f5e08230.js",
       "static/chunks/main-6d240cc9a01c3d68.js",
       "static/chunks/610-4d2859125be8d4d6.js",
-      "static/chunks/pages/index-641822cc62390a65.js"
+      "static/chunks/pages/index-cbe72b1c1baeba4b.js"
     ],
     "/_app": [
       "static/chunks/webpack-6cb3e0fa87f5160d.js",
@@ -53,10 +53,10 @@
       "static/chunks/framework-63d16ff2f5e08230.js",
       "static/chunks/main-6d240cc9a01c3d68.js",
       "static/chunks/11e07bb4-acb040e0ef3740eb.js",
-      "static/chunks/e78312c5-796a3b0b1ac09cb6.js",
+      "static/chunks/e78312c5-139406348280c3d9.js",
       "static/chunks/ad7f724d-1c6ab677bc0ca828.js",
       "static/chunks/376-c4223dc25e596d0f.js",
-      "static/chunks/pages/profile-b09212bec4e3a747.js"
+      "static/chunks/pages/profile-1f2e138d9685a7bb.js"
     ],
     "/reset-password": [
       "static/chunks/webpack-6cb3e0fa87f5160d.js",

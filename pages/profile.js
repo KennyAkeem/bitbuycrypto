@@ -398,21 +398,21 @@ export default function Profile({ showToast }) {
           <h6 className="fw-bold mb-3 text-center">How to get started:</h6>
           <ol className="text-muted small mb-0 ps-3">
             <li>
-              Click <strong>"Invest Now"</strong> below
+              Click <strong  onClick={() => setModalOpen(true)}>"Invest Now"</strong> .
             </li>
             <li>
-              Select your preferred cryptocurrency and network (if applicable)
+              Select your preferred cryptocurrency and network (if applicable).
             </li>
-            <li>Copy the deposit address</li>
+            <li>Copy the deposit address.</li>
             <li>
-              Send cryptocurrency to the provided (copied) address
+              Send cryptocurrency to the provided (copied) address.
             </li>
-            <li>Confirm your payment</li>
-            <li>Wait for admin confirmation</li>
+            <li>Confirm your payment.</li>
+            <li>Wait for admin confirmation.</li>
             <li>
-              Your investment starts counting immediately your deposit is confirmed
+              Your investment starts yielding interests immediately your deposit is confirmed.
             </li>
-            <li>Monitor your investment growth in the dashboard</li>
+            <li>Monitor your investment growth in the dashboard.</li>
             <li>Withdraw your earnings anytime!</li>
           </ol>
         </div>

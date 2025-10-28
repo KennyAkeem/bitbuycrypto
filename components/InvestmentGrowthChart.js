@@ -115,29 +115,7 @@ export default function InvestmentGrowthChart({ investments: propInvestments }) 
     return null;
   };
 
-  // Export as image
-  function handleExportImage() {
-    html2canvas(chartRef.current).then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'investment-growth-chart.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
-
-  // Export as PDF
-  function handleExportPDF() {
-    html2canvas(chartRef.current).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "px",
-        format: [canvas.width, canvas.height]
-      });
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save('investment-growth-chart.pdf');
-    });
-  }
+  
 
   if (!investments.length) return <p className="text-muted">No successful investments yet to show growth.</p>;
 
@@ -160,8 +138,7 @@ export default function InvestmentGrowthChart({ investments: propInvestments }) 
             {int.label}
           </button>
         ))}
-       {/* <button className="btn btn-sm btn-success" onClick={handleExportImage}>Export Image</button>
-        <button className="btn btn-sm btn-warning" onClick={handleExportPDF}>Export PDF</button> */}
+       
       </div>
 
       <div ref={chartRef}>
