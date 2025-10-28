@@ -359,34 +359,75 @@ export default function Profile({ showToast }) {
           </div>
         </div>
       </div>
-      {/* Referral Program Section */}
-      <div className="row mb-4">
-        <div className="col-md-8 mx-auto">
-          <div className="card border-info mb-3">
-            <div className="card-body text-center">
-              <h5 className="card-title">Referral Program</h5>
-              <p className="card-text">
-                Share your personal link. You get <b>5 USDT</b> for every friend who joins and invests!
-              </p>
-              <input
-                type="text"
-                className="form-control text-center mb-2"
-                value={referralLink}
-                readOnly
-                style={{ fontWeight: "bold" }}
-              />
-              <div className="d-flex justify-content-center gap-2">
-                <button className="btn btn-primary" onClick={handleCopyReferral}>
-                  {refCopied ? "Copied!" : "Copy Link"}
-                </button>
-                <button className="btn btn-success" onClick={handleShareReferral}>
-                  Share
-                </button>
-              </div>
-            </div>
+   {/* How to Get Started Section (Responsive Final Version) */}
+<div className="container my-4">
+  <div className="row justify-content-center">
+    <div className="col-12 col-md-10 col-lg-8">
+      <div className="card border-warning shadow-sm rounded-3 p-3 p-md-4 text-center">
+        {/* Icon */}
+        <div className="d-flex justify-content-center align-items-center mb-3">
+          <div
+            className="rounded-circle d-flex justify-content-center align-items-center"
+            style={{
+              width: "70px",
+              height: "70px",
+              backgroundColor: "#fff8e1",
+              border: "2px solid #ffcc00",
+            }}
+          >
+            <i
+              className="bi bi-currency-dollar text-warning"
+              style={{ fontSize: "2rem" }}
+            ></i>
           </div>
         </div>
+
+        {/* Title */}
+        <h5 className="fw-bold text-dark mb-3">
+          Quick Guide{" "}
+          <span className="badge bg-light text-warning border border-warning ms-1">
+            Read Carefully
+          </span>
+        </h5>
+
+        {/* Steps */}
+        <div
+          className="bg-light p-3 p-md-4 rounded-3 mx-auto text-start"
+          style={{ maxWidth: "600px" }}
+        >
+          <h6 className="fw-bold mb-3 text-center">How to get started:</h6>
+          <ol className="text-muted small mb-0 ps-3">
+            <li>
+              Click <strong>"Invest Now"</strong> below
+            </li>
+            <li>
+              Select your preferred cryptocurrency and network (if applicable)
+            </li>
+            <li>Copy the deposit address</li>
+            <li>
+              Send cryptocurrency to the provided (copied) address
+            </li>
+            <li>Confirm your payment</li>
+            <li>Wait for admin confirmation</li>
+            <li>
+              Your investment starts counting immediately your deposit is confirmed
+            </li>
+            <li>Monitor your investment growth in the dashboard</li>
+            <li>Withdraw your earnings anytime!</li>
+          </ol>
+        </div>
+
+        {/* Button (optional) */}
+        <div className="d-flex justify-content-center mt-4">
+          <button className="btn btn-warning fw-semibold px-4" onClick={() => setModalOpen(true)}>
+            Invest Now
+          </button>
+        </div>
       </div>
+    </div>
+  </div>
+</div>
+
       {/* Edit Profile Modal */}
       {editing && (
         <div className="modal fade show" style={{ display: "block", background: "#0007" }}>
@@ -456,61 +497,98 @@ export default function Profile({ showToast }) {
           </div>
         </div>
       )}
-      {/* Investments Table */}
-      <div className="row mb-4">
-        <div className="col-md-10 mx-auto">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h4>Your Investments</h4>
-            <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
-              Invest Now
-            </button>
-          </div>
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle">
-              <thead className="table-secondary">
-                <tr>
-                  <th>Coin</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Time</th>
+   {/* Investments Table */}
+<div className="row mb-4">
+  <div className="col-md-10 mx-auto">
+    <div className="d-flex justify-content-between align-items-center mb-3">
+      <h4>Your Investments</h4>
+      <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
+        Add Funds
+      </button>
+    </div>
+    <div className="table-responsive">
+      <table className="table table-bordered align-middle">
+        <thead className="table-secondary">
+          <tr>
+            <th>Coin</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {investments.length === 0 ? (
+            <tr>
+              <td colSpan={4} className="text-center text-muted">
+                No investments yet.
+              </td>
+            </tr>
+          ) : (
+            investments.map(inv => {
+              const key = `inv-${inv.id}`;
+              const status = inv.status || "pending";
+
+              const coinImages = {
+                btc: "/images/bitcoin.png",
+                eth: "/images/ethereum.png",
+                usdt: "/images/tether.png",
+              };
+
+              return (
+                <tr key={key}>
+                  <td className="fw-bold text-uppercase d-flex align-items-center">
+                    <img
+                      src={coinImages[inv.coin.toLowerCase()]}
+                      alt={inv.coin}
+                      className="me-2"
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    {inv.coin}
+                    {inv.coin === "eth" && (
+                      <span className="badge badge-erc20 ms-2">ERC20</span>
+                    )}
+                    {inv.coin === "usdt" && inv.network && (
+                      <span
+                        className={`badge ${
+                          inv.network === "BEP20"
+                            ? "badge-bep20"
+                            : "badge-trc20"
+                        } ms-2`}
+                      >
+                        {inv.network}
+                      </span>
+                    )}
+                  </td>
+                  <td>{inv.amount}</td>
+                  <td>
+                    <span
+                      className={`badge bg-${
+                        status === "pending" ? "warning" : "success"
+                      } text-dark`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </span>
+                  </td>
+                  <td>
+                    {inv.created_at
+                      ? new Date(inv.created_at).toLocaleString()
+                      : "-"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {investments.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center text-muted">No investments yet.</td>
-                  </tr>
-                ) : (
-                  investments.map(inv => {
-                    const key = `inv-${inv.id}`;
-                    const status = inv.status || "pending";
-                    return (
-                      <tr key={key}>
-                        <td className="fw-bold text-uppercase">
-                          {inv.coin}
-                          {inv.coin === "eth" && <span className="badge badge-erc20 ms-2">ERC20</span>}
-                          {inv.coin === "usdt" && inv.network && (
-                            <span className={`badge ${inv.network === "BEP20" ? "badge-bep20" : "badge-trc20"} ms-2`}>
-                              {inv.network}
-                            </span>
-                          )}
-                        </td>
-                        <td>{inv.amount}</td>
-                        <td>
-                          <span className={`badge bg-${status === "pending" ? "warning" : "success"} text-dark`}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </span>
-                        </td>
-                        <td>{inv.created_at ? new Date(inv.created_at).toLocaleString() : "-"}</td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
       {/* Withdraw Button */}
       <div className="row mb-4">
         <div className="col-md-10 mx-auto text-end">
@@ -520,57 +598,97 @@ export default function Profile({ showToast }) {
         </div>
       </div>
       <InvestmentGrowthChart investments={investments.filter(inv => inv.status === "success")} />
-      <div className="row mb-4">
-        <div className="col-md-10 mx-auto">
-          <h4>Transaction History</h4>
-          <div className="table-responsive">
-            <table className="table table-bordered align-middle">
-              <thead className="table-secondary">
-                <tr>
-                  <th>Type</th>
-                  <th>Coin</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Time</th>
+    {/* Transaction History */}
+<div className="row mb-4">
+  <div className="col-md-10 mx-auto">
+    <h4>Transaction History</h4>
+    <div className="table-responsive">
+      <table className="table table-bordered align-middle">
+        <thead className="table-secondary">
+          <tr>
+            <th>Type</th>
+            <th>Coin</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            ...investments.map(inv => ({ ...inv, type: "Deposit" })),
+            ...withdrawals.map(wd => ({ ...wd, type: "Withdrawal" })),
+          ]
+            .sort(
+              (a, b) =>
+                new Date(b.created_at || b.timestamp) -
+                new Date(a.created_at || a.timestamp)
+            )
+            .map(tx => {
+              const key = `tx-${tx.type}-${tx.id}`;
+              const status = tx.status || "pending";
+
+              const coinImages = {
+                btc: "/images/bitcoin.png",
+                eth: "/images/ethereum.png",
+                usdt: "/images/tether.png",
+              };
+
+              return (
+                <tr key={key}>
+                  <td>{tx.type}</td>
+                  <td className="fw-bold text-uppercase d-flex align-items-center">
+                    <img
+                      src={coinImages[tx.coin.toLowerCase()]}
+                      alt={tx.coin}
+                      className="me-2"
+                      style={{
+                        width: "20px",
+                        height: "20px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                      }}
+                    />
+                    {tx.coin}
+                    {tx.coin === "eth" && (
+                      <span className="badge badge-erc20 ms-2">ERC20</span>
+                    )}
+                    {tx.coin === "usdt" && tx.network && (
+                      <span
+                        className={`badge ${
+                          tx.network === "BEP20"
+                            ? "badge-bep20"
+                            : "badge-trc20"
+                        } ms-2`}
+                      >
+                        {tx.network}
+                      </span>
+                    )}
+                  </td>
+                  <td>{tx.amount}</td>
+                  <td>
+                    <span
+                      className={`badge bg-${
+                        status === "pending" ? "warning" : "success"
+                      } text-dark`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </span>
+                  </td>
+                  <td>
+                    {tx.created_at
+                      ? new Date(tx.created_at).toLocaleString()
+                      : "-"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {[
-                  ...investments.map(inv => ({ ...inv, type: "Deposit" })),
-                  ...withdrawals.map(wd => ({ ...wd, type: "Withdrawal" }))
-                ]
-                  .sort((a, b) => new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp))
-                  .map(tx => {
-                    const key = `tx-${tx.type}-${tx.id}`;
-                    const status = tx.status || "pending";
-                    return (
-                      <tr key={key}>
-                        <td>{tx.type}</td>
-                        <td className="fw-bold text-uppercase">
-                          {tx.coin}
-                          {tx.coin === "eth" && <span className="badge badge-erc20 ms-2">ERC20</span>}
-                          {tx.coin === "usdt" && tx.network && (
-                            <span className={`badge ${tx.network === "BEP20" ? "badge-bep20" : "badge-trc20"} ms-2`}>
-                              {tx.network}
-                            </span>
-                          )}
-                        </td>
-                        <td>{tx.amount}</td>
-                        <td>
-                          <span className={`badge bg-${status === "pending" ? "warning" : "success"} text-dark`}>
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </span>
-                        </td>
-                        <td>{tx.created_at ? new Date(tx.created_at).toLocaleString() : "-"}</td>
-                      </tr>
-                    );
-                  })
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+              );
+            })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
       {/* Investment Modal */}
       {modalOpen && (
         <div className="modal fade show" style={{ display: "block", background: "#0004" }}>

@@ -1,7 +1,1 @@
-{
-  "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/admin": "pages/admin.js"
-}
+{"/admin":"pages/admin.html","/_error":"pages/_error.js","/":"pages/index.html","/_app":"pages/_app.js","/profile":"pages/profile.html","/admin-deposits":"pages/admin-deposits.html","/reset-password":"pages/reset-password.html","/dashboard":"pages/dashboard.html","/verify-email":"pages/verify-email.html","/_document":"pages/_document.js","/404":"pages/404.html"}

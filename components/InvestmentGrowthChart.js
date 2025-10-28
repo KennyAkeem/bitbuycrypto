@@ -160,8 +160,8 @@ export default function InvestmentGrowthChart({ investments: propInvestments }) 
             {int.label}
           </button>
         ))}
-        <button className="btn btn-sm btn-success" onClick={handleExportImage}>Export Image</button>
-        <button className="btn btn-sm btn-warning" onClick={handleExportPDF}>Export PDF</button>
+       {/* <button className="btn btn-sm btn-success" onClick={handleExportImage}>Export Image</button>
+        <button className="btn btn-sm btn-warning" onClick={handleExportPDF}>Export PDF</button> */}
       </div>
 
       <div ref={chartRef}>
