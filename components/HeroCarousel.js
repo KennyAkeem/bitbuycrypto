@@ -60,7 +60,7 @@ export default function HeroCarousel({ onApply }) {
               >
                 <h1 className="carousel-caption-title">{slide.caption}</h1>
                 <p className="carousel-caption-desc">{slide.description}</p>
-                <motion.button onClick={() => setModalOpen(true)}
+                <motion.button 
                   className="carousel-caption-btn"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
