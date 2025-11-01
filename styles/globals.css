@@ -1328,3 +1328,7 @@ df-messenger {
 }
 
 
+/* Add this to your global CSS file */
+body {
+  padding-top: 80px; /* same height or a bit more than your header height */
+}
