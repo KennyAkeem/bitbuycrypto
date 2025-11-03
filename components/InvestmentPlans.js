@@ -4,10 +4,10 @@ import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 const plans = [
-  { id: "starter", name: "Starter Plan", range: "$100 - $9,999", duration: "30 days", yield: "5% daily", accent: "#00e0ff" },
-  { id: "growth", name: "Growth Plan", range: "$10,000 - $49,999", duration: "45 days", yield: "8% daily", accent: "#00ff85" },
-  { id: "premium", name: "Premium Plan", range: "$50,000 - $250,000", duration: "60 days", yield: "10% daily", accent: "#ffd500" },
-  { id: "elite", name: "Elite Plan", range: "$251,000 - ∞", duration: "90 days", yield: "12% daily", accent: "#ff00ff" },
+  { id: "starter", name: "Starter Plan", range: "$100 - $9,999", duration: "30 days", yield: "5% daily", accent: "#3b82f6" },
+  { id: "growth", name: "Growth Plan", range: "$10,000 - $49,999", duration: "45 days", yield: "8% daily", accent: "#3b82f6" },
+  { id: "premium", name: "Premium Plan", range: "$50,000 - $250,000", duration: "60 days", yield: "10% daily", accent: "#3b82f6" },
+  { id: "elite", name: "Elite Plan", range: "$251,000 - ∞", duration: "90 days", yield: "12% daily", accent: "#001f52" },
 ];
 
 export default function InvestmentPlans() {
@@ -112,10 +112,10 @@ export default function InvestmentPlans() {
 
         .title {
           font-size: clamp(1.8rem, 4vw, 2.8rem);
-          background: linear-gradient(90deg, #00e0ff, #ff00ff);
+          background: linear-gradient(90deg, #0a1a3a, #001f52);
           -webkit-background-clip: text;
           color: transparent;
-          text-shadow: 0 0 20px #00e0ff66;
+          text-shadow: 0 0 20px #0a1a3a;
           margin-bottom: 10px;
           animation: glowPulse 3s infinite ease-in-out;
         }
