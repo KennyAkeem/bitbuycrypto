@@ -7,7 +7,7 @@ const plans = [
   { id: "starter", name: "Starter Plan", range: "$100 - $500", duration: "24 hours", yield: "5% daily", accent: "#3b82f6" },
   { id: "growth", name: "Growth Plan", range: "$500 - $1000", duration: "24 hours", yield: "8% daily", accent: "#3b82f6" },
   { id: "premium", name: "Premium Plan", range: "$1000 - $10,000", duration: "48 hours", yield: "15% daily", accent: "#3b82f6" },
-  { id: "elite", name: "Elite Plan", range: "$10,000 - unlimited", duration: "72 house", yield: "30% daily", accent: "#001f52" },
+  { id: "elite", name: "Elite Plan", range: "$10,000 - unlimited", duration: "72 hours", yield: "30% daily", accent: "#001f52" },
 ];
 
 export default function InvestmentPlans() {
