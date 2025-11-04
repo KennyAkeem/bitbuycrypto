@@ -1,16 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * FAQSection (responsive + polished)
- * - Reworked for strong responsiveness: controls stack on small screens,
- *   search is full-width, action buttons are compact, and FAQ cards form a single column on mobile.
- * - Uses stable ids for keys and accessibility attributes.
- *
- * Usage:
- *  import FAQSection from "./components/FAQSection";
- *  <FAQSection />
- */
+
 
 const FAQS = [
   {
@@ -483,12 +474,6 @@ export default function FAQSection() {
         }
 
 
-
-
-
-
-
-
 /* Small tweaks for very small screens */
 @media (max-width: 420px) {
   .faq-head {
@@ -541,10 +526,6 @@ export default function FAQSection() {
     padding: 18px 0;
   }
 }
-
-
-
-
 
 
 

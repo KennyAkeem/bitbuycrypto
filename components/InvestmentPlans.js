@@ -4,10 +4,10 @@ import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 const plans = [
-  { id: "starter", name: "Starter Plan", range: "$100 - $9,999", duration: "30 days", yield: "5% daily", accent: "#3b82f6" },
-  { id: "growth", name: "Growth Plan", range: "$10,000 - $49,999", duration: "45 days", yield: "8% daily", accent: "#3b82f6" },
-  { id: "premium", name: "Premium Plan", range: "$50,000 - $250,000", duration: "60 days", yield: "10% daily", accent: "#3b82f6" },
-  { id: "elite", name: "Elite Plan", range: "$251,000 - ∞", duration: "90 days", yield: "12% daily", accent: "#001f52" },
+  { id: "starter", name: "Starter Plan", range: "$100 - $500", duration: "24 hours", yield: "5% daily", accent: "#3b82f6" },
+  { id: "growth", name: "Growth Plan", range: "$500 - $1000", duration: "24 hours", yield: "8% daily", accent: "#3b82f6" },
+  { id: "premium", name: "Premium Plan", range: "$1000 - $10,000", duration: "48 hours", yield: "15% daily", accent: "#3b82f6" },
+  { id: "elite", name: "Elite Plan", range: "$10,000 - unlimited", duration: "72 house", yield: "30% daily", accent: "#001f52" },
 ];
 
 export default function InvestmentPlans() {
