@@ -1,15 +1,5 @@
 import { motion } from "framer-motion";
 
-/**
- * Responsive video iframe section
- * - Renders a responsive grid of video iframes (16:9)
- * - Uses CSS aspect-ratio fallback (padding-top technique) for wide browser support
- * - Adds subtle hover/entrance animations via framer-motion
- *
- * Usage:
- * 1. import VideoSection from './VideoSection'
- * 2. Place <VideoSection /> right below <InvestmentPlans /> in the page/component
- */
 
 const VIDEOS = [
   {

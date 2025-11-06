@@ -1,0 +1,343 @@
+{
+  "title": "Mi Aplicación",
+  "welcome": "¡Bienvenido a mi sitio!",
+  "change_language": "Cambiar idioma",
+  "language_en": "Inglés",
+  "language_fr": "Francés",
+  "language_es": "Español",
+  "language_de": "Alemán",
+  "hello_name": "¡Hola, {{name}}!",
+  "brand": "Bitbuy",
+  "nav_services": "Servicios",
+  "nav_investment_plans": "Planes de inversión",
+  "nav_testimony": "Testimonios",
+  "nav_faq": "Preguntas frecuentes",
+  "admin": "Admin",
+  "dashboard": "Panel",
+  "login": "Iniciar sesión",
+  "logout": "Cerrar sesión",
+  
+  "auth": {
+    "create_account": "Crear cuenta",
+    "welcome_back": "Bienvenido de nuevo",
+    "join_us": "Únete a nosotros — seguro y rápido.",
+    "display_name": "Nombre para mostrar",
+    "display_name_required": "El nombre para mostrar es obligatorio.",
+    "email": "Correo electrónico",
+    "invalid_email": "Introduce una dirección de correo válida.",
+    "password": "Contraseña",
+    "show_password": "Mostrar contraseña",
+    "min_chars": "Al menos 6 caracteres",
+    "uppercase": "Al menos una letra mayúscula",
+    "lowercase": "Al menos una letra minúscula",
+    "number": "Al menos un número",
+    "chars_left": "Caracteres restantes",
+    "confirm_password": "Confirmar contraseña",
+    "register": "Registrarse",
+    "already_have_account": "¿Ya tienes una cuenta?",
+    "login": "Iniciar sesión",
+    "enter_password": "Introduce tu contraseña.",
+    "password_requirements": "La contraseña debe tener al menos 6 caracteres, incluir mayúsculas, minúsculas y un número.",
+    "passwords_mismatch": "Las contraseñas no coinciden.",
+    "account_created": "¡Cuenta creada!",
+    "registration_failed": "¡Registro fallido!",
+    "forgot_password": "¿Olvidaste la contraseña?",
+    "send_reset_link": "Enviar enlace de restablecimiento",
+    "reset_sent": "¡Enlace enviado! Revisa tu correo.",
+    "reset_failed": "No se pudo enviar el enlace de restablecimiento.",
+    "back_to_login": "Volver al inicio de sesión",
+    "login_failed": "¡Error al iniciar sesión! Verifica tus credenciales.",
+    "login_successful": "¡Inicio de sesión correcto!",
+    "close": "Cerrar el cuadro de autenticación",
+    "sign_in_to_continue": "Inicia sesión para continuar."
+  },
+  "buy": {
+    "title": "Comprar cripto",
+    "login_prompt": "Por favor inicia sesión para comprar (demo)",
+    "asset_label": "Activo",
+    "amount_label": "Cantidad (USD)",
+    "amount_placeholder": "p. ej., 50",
+    "price_prefix": "Precio",
+    "buy_button": "Comprar {{asset}}",
+    "investment_options_title": "Opciones de inversión",
+    "quick_amount": "${{amount}}",
+    "enter_positive_amount": "Introduce una cantidad positiva en USD",
+    "bought_msg": "Comprado {{amount}} {{asset}} por ${{amt}} (demo)"
+  },
+  "asset": {
+    "BTC": "Bitcoin",
+    "ETH": "Ethereum",
+    "SOL": "Solana",
+    "USDT": "Tether (USDT)"
+  }
+,
+  "deposit": {
+    "loading": "Cargando direcciones de depósito…",
+    "failed": "Error al cargar las direcciones",
+    "title": "Direcciones de depósito",
+    "none": "No se encontraron direcciones de depósito.",
+    "not_set": "No establecido",
+    "last_updated": "Última actualización"
+  }
+,
+
+  "faq": {
+    "eyebrow": "Preguntas",
+    "title": "Obtén respuestas a preguntas comunes",
+    "lead": "Encuentra ayuda rápidamente o lee las preguntas más comunes sobre Bitbuy.",
+    "search_label": "Buscar en FAQ",
+    "search_placeholder": "Busca por palabra clave (depósitos, retiros, planes...)",
+    "aria_search": "Buscar preguntas frecuentes",
+    "clear": "Borrar",
+    "collapse_all": "Contraer todo",
+    "expand_first": "Expandir primero",
+    "no_results": "No se encontraron resultados. Prueba con otra palabra clave.",
+    "what_is_bitbuy": {
+      "q": "¿Qué es Bitbuy?",
+      "a": "Bitbuy es una plataforma de inversión de confianza que permite a los usuarios invertir de forma segura en criptomonedas como Bitcoin, Ethereum y USDT. Nos centramos en hacer que la inversión digital sea simple, transparente y accesible, aplicando una gestión de riesgos disciplinada y estrategias basadas en datos."
+    },
+    "industries": {
+      "q": "¿En qué industrias se especializan?",
+      "a": "Nos especializamos en criptomonedas y activos digitales. Nuestros mercados principales incluyen Bitcoin (BTC), Ethereum (ETH), USDT (BEP20 / TRC20) y oportunidades DeFi relacionadas. Combinamos estrategias automatizadas con supervisión humana para capturar oportunidades de mercado de manera responsable."
+    },
+    "guarantee_growth": {
+      "q": "¿Pueden garantizar crecimiento?",
+      "a": "Ninguna inversión legítima puede prometer rendimientos garantizados. Bitbuy se compromete con la transparencia y la gestión profesional del riesgo: buscamos maximizar los rendimientos mientras minimizamos los riesgos evitables mediante análisis y estrategias adaptativas. El rendimiento pasado no garantiza resultados futuros."
+    },
+    "plans_special": {
+      "q": "¿Qué hace especiales a sus planes de inversión?",
+      "a": "Nuestros planes equilibran duraciones claras, rendimientos transparentes y ejecución automatizada. Adaptamos planes para diferentes objetivos (corto plazo, crecimiento, preservación de capital) y monitoreamos continuamente el rendimiento para optimizar resultados."
+    },
+    "deposits_withdrawals": {
+      "q": "¿Cómo funcionan los depósitos y retiros?",
+      "a": "Las carteras se generan y son visibles solo para usuarios autenticados. Los depósitos se registran como pendientes hasta que el sistema los confirma. Los retiros se solicitan desde su panel y requieren aprobación del administrador para su procesamiento, garantizando seguridad."
+    },
+    "user_security": {
+      "q": "¿Cómo se maneja la seguridad del usuario?",
+      "a": "Aplicamos autenticación segura, RLS en la base de datos, comunicaciones cifradas y controles operativos para acciones administrativas. Nunca comparta sus claves de servicio y use contraseñas fuertes / 2FA cuando esté disponible."
+    }
+  }
+,
+
+  "hero": {
+    "aria_label": "Carrusel principal",
+    "slide1": {
+      "caption": "La compañía de inversiones más prestigiosa",
+      "description": "Invierte con confianza en BTC, ETH y USDT — rápido, seguro y fiable.",
+      "cta": "Aplica ahora"
+    },
+    "slide2": {
+      "caption": "Información cripto en tiempo real",
+      "description": "Mantente a la vanguardia con seguimiento de precios cripto en vivo y actualizaciones instantáneas de transacciones.",
+      "cta": "Comenzar a invertir"
+    },
+    "slide3": {
+      "caption": "Transacciones aprobadas por administradores",
+      "description": "Cada inversión se revisa manualmente para su seguridad y transparencia.",
+      "cta": "Leer más"
+    }
+  }
+,
+
+  "footer": {
+    "aria_label": "Pie de página",
+    "top_sponsors": "Patrocinadores principales",
+    "explore": "Explorar",
+    "contact_info": "Información de contacto",
+    "address": "540 Street, New York, USA",
+    "email": "binance.net.inc@gmail.com",
+    "phone": "+1 5667 8756 467",
+    "popular_posts": "Publicaciones populares",
+    "post": {
+      "investment": {
+        "title": "Inversión",
+        "link": "Revisando sus objetivos de inversión y distribución"
+      },
+      "business": {
+        "title": "Negocios",
+        "link": "Entrevista con Dimensional Fund Advisors"
+      }
+    },
+    "bottom": "© 2025 Bitbuy Invest. Todos los derechos reservados. | Diseñado por HRH",
+    "social": {
+      "facebook-f": "Facebook",
+      "twitter": "Twitter",
+      "instagram": "Instagram",
+      "linkedin-in": "LinkedIn"
+    }
+  },
+  "sponsor": {
+    "binance": "Binance",
+    "ripple": "Ripple",
+    "coinbase": "Coinbase",
+    "bitcoin": "Bitcoin"
+  }
+,
+  "plans": {
+    "title": "🚀 Planes de inversión",
+    "subtitle": "Elige entre nuestros niveles de inversión de alto rendimiento — diseñados para la nueva era de las finanzas.",
+    "invest_now": "Invertir ahora",
+    "starter": {
+      "name": "Plan Starter",
+      "range": "$100 - $500",
+      "duration": "24 horas",
+      "yield": "5% diario"
+    },
+    "growth": {
+      "name": "Plan Growth",
+      "range": "$500 - $1000",
+      "duration": "24 horas",
+      "yield": "8% diario"
+    },
+    "premium": {
+      "name": "Plan Premium",
+      "range": "$1000 - $10,000",
+      "duration": "48 horas",
+      "yield": "15% diario"
+    },
+    "elite": {
+      "name": "Plan Elite",
+      "range": "$10,000 - ilimitado",
+      "duration": "72 horas",
+      "yield": "30% diario"
+    }
+  }
+,
+
+  "services": {
+    "eyebrow": "Nuestros Servicios",
+    "heading": "Explora la Inversión del Futuro",
+    "cta": "Bitbuy",
+    "business_strategy": {
+      "title": "Inversiones Estratégicas Empresariales",
+      "description": "Libera todo el potencial de tus activos con nuestras estrategias de inversión futuristas. Combinamos IA con un profundo conocimiento del mercado."
+    },
+    "consultancy": {
+      "title": "Consultoría y Asesoramiento",
+      "description": "Nuestros expertos brindan asesoramiento personalizado para ayudarte a navegar el complejo mundo de las finanzas y la tecnología modernas."
+    },
+    "investments_planning": {
+      "title": "Planificación de Inversiones",
+      "description": "Planifica tus inversiones con confianza: análisis inteligentes, evaluación de riesgos y modelos de crecimiento adaptativos al alcance de tu mano."
+    },
+    "private_client": {
+      "title": "Inversión para Clientes Privados",
+      "description": "Servicios exclusivos para clientes privados de alto patrimonio. Seguros, discretos y diseñados para un crecimiento exponencial."
+    }
+  }
+,
+
+  "sim": {
+    "deposit": "Alguien desde {{country}} acaba de depositar {{amount}} {{coin}}",
+    "withdraw": "Alguien en {{country}} acaba de retirar {{amount}} {{coin}}",
+    "example": "Alguien desde Japón acaba de depositar 0.25 BTC"
+  }
+,
+
+
+
+  "profile": {
+    "loading": "Cargando...",
+    "not_authorized": "No autorizado",
+    "profile_alt": "perfil",
+    "email_label": "Correo",
+    "edit_profile_button": "Editar perfil",
+    "quick_guide_title": "Guía rápida",
+    "quick_guide_badge": "Lea cuidadosamente",
+    "how_to_get_started_heading": "Cómo empezar:",
+    "step_1_prefix": "Haga clic",
+    "invest_now": "\"Invest Now\"",
+    "step_2": "Seleccione su criptomoneda y red preferidas (si corresponde).",
+    "step_3": "Copie la dirección de depósito.",
+    "step_4": "Envíe la criptomoneda a la dirección proporcionada (copiada).",
+    "step_5": "Confirme su pago.",
+    "step_6": "Espere la confirmación del administrador.",
+    "step_7": "Su inversión comienza a generar intereses inmediatamente después de que su depósito sea confirmado.",
+    "step_8": "Monitoree el crecimiento de su inversión en el panel.",
+    "step_9": "¡Retire sus ganancias en cualquier momento!",
+    "invest_now_cta": "Invertir ahora",
+    "edit_profile_modal_title": "Editar perfil",
+    "close": "Cerrar",
+    "change_picture": "Cambiar imagen",
+    "remove_picture": "Eliminar",
+    "display_name_label": "Nombre para mostrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete_account": "Eliminar cuenta",
+    "your_investments": "Sus inversiones",
+    "add_funds": "Agregar fondos",
+    "col_coin": "Coin",
+    "col_amount": "Cantidad",
+    "col_status": "Estado",
+    "col_time": "Hora",
+    "no_investments": "Aún no hay inversiones.",
+    "withdraw_funds": "Retirar fondos",
+    "transaction_history": "Historial de transacciones",
+    "col_type": "Tipo",
+    "badge_erc20": "ERC20",
+    "new_investment": "Nueva inversión",
+    "select_coin": "Seleccionar moneda",
+    "select_usdt_network": "Seleccionar red USDT",
+    "network_label": "¡Red!",
+    "deposit_address": "Dirección de depósito",
+    "copy": "Copiar",
+    "amount_label": "Cantidad",
+    "pay_now": "Pagar ahora",
+    "withdrawal": "Retiro",
+    "withdraw_invalid_amount": "Ingrese una cantidad válida!",
+    "withdraw_over_balance": "¡No se puede retirar más de su saldo!",
+    "withdraw_address_required": "¡Dirección de billetera requerida!",
+    "withdraw_fail": "Error al registrar el retiro!",
+    "withdraw_request_msg": "Solicitud de retiro de {{amount}} {{coin}} enviada. Esperando la aprobación del administrador.",
+    "withdraw_nothing": "Nada para retirar todavía. ¡Invierte ahora para empezar a ganar!",
+    "select_network_placeholder": "Seleccionar red",
+    "withdrawal_amount": "Cantidad de retiro",
+    "wallet_address": "Dirección de la billetera",
+    "wallet_placeholder": "Ingrese su dirección de billetera",
+    "withdraw_button": "Retirar",
+    "address_copied": "¡Dirección copiada!",
+    "no_address": "¡No hay dirección para copiar!",
+    "invalid_amount": "Ingrese una cantidad válida!",
+    "deposit_fail": "Error al registrar la inversión!",
+    "deposit_success": "¡Depósito exitoso!",
+    "display_name_required": "¡Se requiere un nombre para mostrar!",
+    "profile_updated": "¡Perfil actualizado!",
+    "pic_too_large": "La imagen de perfil debe ser menor a 200KB.",
+    "confirm_delete_account": "¿Estás seguro de que deseas eliminar tu cuenta? Esto no se puede deshacer.",
+    "account_deleted": "¡Cuenta eliminada!",
+    "share_title": "¡Únete a mí en Bitbuy!",
+    "share_text": "Regístrate y gana un bono con mi enlace de referido."
+  }
+,
+
+
+  "verify": {
+    "checking": "Comprobando el estado de verificación...",
+    "verified_msg": "¡Correo verificado! Redirigiendo a tu panel...",
+    "title": "Revisa tu correo 📩",
+    "instructions": "Enviamos un enlace de confirmación a tu correo. Por favor verifica tu cuenta para acceder a tu panel.",
+    "auto_update": "Esta página se actualizará automáticamente una vez que tu correo esté verificado."
+  }
+,
+  "testimonials_title": "Lo que dicen nuestros clientes",
+
+  "testimonial_1_review": "¡Bitbuy hizo que invertir fuera muy fácil! Doblé mis ganancias en solo unos meses. Muy recomendable.",
+  "testimonial_1_name": "Joe Iris",
+  "testimonial_1_role": "Inversor",
+
+  "testimonial_2_review": "El panel es súper intuitivo y el soporte es fantástico. ¡Mis retiros siempre son rápidos!",
+  "testimonial_2_name": "Linda Chen",
+  "testimonial_2_role": "Trader",
+
+  "testimonial_3_review": "La transparencia de Bitbuy me da tranquilidad. Confío en que mis fondos están seguros.",
+  "testimonial_3_name": "Alex Bush",
+  "testimonial_3_role": "Emprendedor",
+
+  "testimonial_4_review": "Los consejos de Bitbuy me ayudaron a diversificar. Los informes semanales son un cambio total.",
+  "testimonial_4_name": "Marta John",
+  "testimonial_4_role": "Inversor",
+
+  "testimonial_5_review": "Me encanta el diseño limpio y lo fácil que es seguir mi crecimiento.",
+  "testimonial_5_name": "Duke James",
+  "testimonial_5_role": "Inversor"
+}

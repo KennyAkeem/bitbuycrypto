@@ -2,14 +2,23 @@ import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { useUser } from "../context/UserContext";
 import { useState, useEffect } from "react";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 export default function Header({ showToast }) {
+  const { t } = useTranslation();
   const { user, logout } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [startView, setStartView] = useState("login");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+
+  // NEW: track client mount to avoid server/client hydration mismatch
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleNavClick = (sectionId) => {
     setMenuOpen(false);
@@ -47,6 +56,23 @@ export default function Header({ showToast }) {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const navIds = ["services", "investment-plans", "testimony", "faq"];
+  const navLabel = (id) => {
+    // Render safe English fallback on server / before mount; use t(...) after mount
+    if (!isMounted) {
+      if (id === "investment-plans") return "Investment Plans";
+      if (id === "services") return "Services";
+      if (id === "testimony") return "Testimony";
+      if (id === "faq") return "FAQ";
+      return id;
+    }
+    if (id === "investment-plans") return t("nav_investment_plans");
+    if (id === "services") return t("nav_services");
+    if (id === "testimony") return t("nav_testimony");
+    if (id === "faq") return t("nav_faq");
+    return id;
+  };
 
   return (
     <header
@@ -97,7 +123,9 @@ export default function Header({ showToast }) {
               alignItems: "center",
             }}
           >
-            <i className="fas fa-donate me-2"></i>Bitbuy
+            <i className="fas fa-donate me-2"></i>
+            {/* Render English fallback on server, then t(...) after mount */}
+            {isMounted ? t("brand") : "Bitbuy"}
           </h1>
         </Link>
 
@@ -113,41 +141,44 @@ export default function Header({ showToast }) {
 
         {/* Desktop Links */}
         <div className="nav-links">
-          {["services", "investment-plans", "testimony", "faq"].map((id) => (
+          {navIds.map((id) => (
             <button
               key={id}
               onClick={() => handleNavClick(id)}
               className={`nav-btn ${activeSection === id ? "active" : ""}`}
             >
-              {id.replace("-", " ").toUpperCase()}
+              {navLabel(id)}
             </button>
           ))}
 
+          {/* Language switcher added here for desktop */}
+          <LanguageSwitcher />
+
           {isAdmin && (
             <Link href="/admin" onClick={() => setMenuOpen(false)}>
-              <button className="nav-btn">ADMIN</button>
+              <button className="nav-btn">{isMounted ? t("admin") : "Admin"}</button>
             </Link>
           )}
 
           {user ? (
             <>
               <Link href="/profile" onClick={() => setMenuOpen(false)}>
-                <button className="btn-outline">Dashboard</button>
+                <button className="btn-outline">{isMounted ? t("dashboard") : "Dashboard"}</button>
               </Link>
               <button
                 className="btn-dark"
                 onClick={() => {
                   logout();
-                  showToast && showToast("success", "Logged out!");
+                  showToast && showToast("success", isMounted ? t("logout") : "Logged out!");
                   setMenuOpen(false);
                 }}
               >
-                Logout
+                {isMounted ? t("logout") : "Logout"}
               </button>
             </>
           ) : (
             <button className="btn-primary" onClick={() => openModal("login")}>
-              Login
+              {isMounted ? t("login") : "Login"}
             </button>
           )}
         </div>
@@ -156,42 +187,45 @@ export default function Header({ showToast }) {
       {/* Mobile Menu */}
       <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
         <nav className="mobile-nav">
-          {["services", "investment-plans", "testimony", "faq"].map((id) => (
+          {navIds.map((id) => (
             <button
               key={id}
               className={`mobile-link ${activeSection === id ? "active" : ""}`}
               onClick={() => handleNavClick(id)}
             >
-              {id.replace("-", " ").toUpperCase()}
+              {navLabel(id)}
             </button>
           ))}
 
           {isAdmin && (
             <Link href="/admin" onClick={() => setMenuOpen(false)}>
-              <button className="mobile-link">ADMIN</button>
+              <button className="mobile-link">{isMounted ? t("admin") : "Admin"}</button>
             </Link>
           )}
 
           <div className="mobile-actions">
+            {/* Language switcher added here for mobile */}
+            <LanguageSwitcher />
+
             {user ? (
               <>
                 <Link href="/profile" onClick={() => setMenuOpen(false)}>
-                  <button className="btn-outline">Dashboard</button>
+                  <button className="btn-outline">{isMounted ? t("dashboard") : "Dashboard"}</button>
                 </Link>
                 <button
                   className="btn-dark"
                   onClick={() => {
                     logout();
-                    showToast && showToast("success", "Logged out!");
+                    showToast && showToast("success", isMounted ? t("logout") : "Logged out!");
                     setMenuOpen(false);
                   }}
                 >
-                  Logout
+                  {isMounted ? t("logout") : "Logout"}
                 </button>
               </>
             ) : (
               <button className="btn-primary" onClick={() => openModal("login")}>
-                Login
+                {isMounted ? t("login") : "Login"}
               </button>
             )}
           </div>

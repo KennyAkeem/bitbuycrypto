@@ -1,3 +1,6 @@
+// add this as the very first import so i18n initializes before pages render
+import '../i18n';
+import LanguagePrompt from '../components/LanguagePrompt'; // add this
 import "../styles/globals.css";
 import { useState, useEffect } from "react";
 import { UserProvider, useUser } from "../context/UserContext";
@@ -19,6 +22,9 @@ function InnerApp({ Component, pageProps, showToast, hideToast, toast }) {
 
   return (
     <>
+      {/* Language prompt (client-only, hydration-safe) */}
+      <LanguagePrompt />
+
       <Header showToast={showToast} />
       <main id="main">
         <Component {...pageProps} showToast={showToast} />

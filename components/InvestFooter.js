@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export default function InvestFooter() {
+  const { t, i18n } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
+  const tSafe = (key, fallback) => (isMounted ? t(key, { defaultValue: fallback }) : fallback);
+
   const [activeSection, setActiveSection] = useState("");
 
   // Scroll spy logic
@@ -23,9 +30,11 @@ export default function InvestFooter() {
       setActiveSection(current);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    if (typeof window !== "undefined") {
+      window.addEventListener("scroll", handleScroll);
+      handleScroll();
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
   }, []);
 
   // Animation variants
@@ -35,20 +44,20 @@ export default function InvestFooter() {
     viewport: { once: true, amount: 0.2 },
   };
 
-  // Sponsor data
+  // Sponsor data (translation-ready)
   const sponsors = [
-    { src: "/images/banner-coin1.png", alt: "Binance", color: "#F3BA2F" },
-    { src: "/images/banner-coin2.png", alt: "Ripple", color: "#00AAE4" },
-    { src: "/images/banner-coin3.png", alt: "Coinbase", color: "#1652F0" },
-    { src: "/images/banner-coin4.png", alt: "Bitcoin", color: "#F7931A" },
+    { src: "/images/banner-coin1.png", altKey: "sponsor.binance", altFallback: "Binance", color: "#F3BA2F" },
+    { src: "/images/banner-coin2.png", altKey: "sponsor.ripple", altFallback: "Ripple", color: "#00AAE4" },
+    { src: "/images/banner-coin3.png", altKey: "sponsor.coinbase", altFallback: "Coinbase", color: "#1652F0" },
+    { src: "/images/banner-coin4.png", altKey: "sponsor.bitcoin", altFallback: "Bitcoin", color: "#F7931A" },
   ];
 
-  // Footer nav items
+  // Footer nav items (reuse existing nav keys where possible)
   const navItems = [
-    { id: "services", label: "Services" },
-    { id: "investment-plans", label: "Investment Plans" },
-    { id: "testimony", label: "Testimonials" },
-    { id: "faq", label: "FAQ" },
+    { id: "services", labelKey: "nav_services", fallback: "Services" },
+    { id: "investment-plans", labelKey: "nav_investment_plans", fallback: "Investment Plans" },
+    { id: "testimony", labelKey: "nav_testimony", fallback: "Testimonials" },
+    { id: "faq", labelKey: "nav_faq", fallback: "FAQ" },
   ];
 
   return (
@@ -58,6 +67,8 @@ export default function InvestFooter() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.8 }}
+      role="contentinfo"
+      aria-label={tSafe("footer.aria_label", "Site footer")}
     >
       <div className="footer-container">
         {/* Top Sponsors Section */}
@@ -73,7 +84,7 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            Top Sponsors
+            {tSafe("footer.top_sponsors", "Top Sponsors")}
           </motion.h4>
 
           <motion.div
@@ -95,7 +106,7 @@ export default function InvestFooter() {
               >
                 <img
                   src={sponsor.src}
-                  alt={sponsor.alt}
+                  alt={tSafe(sponsor.altKey, sponsor.altFallback)}
                   className="w-full h-full object-contain"
                 />
               </motion.div>
@@ -115,7 +126,7 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            Explore
+            {tSafe("footer.explore", "Explore")}
           </motion.h4>
 
           <motion.ul
@@ -131,17 +142,14 @@ export default function InvestFooter() {
                   href={`#${section.id}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    document
-                      .getElementById(section.id)
-                      ?.scrollIntoView({ behavior: "smooth" });
+                    document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth" });
                   }}
                   className={`footer-link transition-colors duration-300 ${
-                    activeSection === section.id
-                      ? "text-[#1bc6ff] font-semibold"
-                      : "text-gray-300 hover:text-[#1bc6ff]"
+                    activeSection === section.id ? "text-[#1bc6ff] font-semibold" : "text-gray-300 hover:text-[#1bc6ff]"
                   }`}
                 >
-                  <i className="fas fa-angle-right mr-1"></i> {section.label}
+                  <i className="fas fa-angle-right mr-1" aria-hidden></i>{" "}
+                  {tSafe(section.labelKey, section.fallback)}
                 </a>
               </li>
             ))}
@@ -160,7 +168,7 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            Contact Info
+            {tSafe("footer.contact_info", "Contact Info")}
           </motion.h4>
           <motion.ul
             initial={{ opacity: 0, y: 18 }}
@@ -169,18 +177,21 @@ export default function InvestFooter() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <li>
-              <a href="#">
-                <i className="fas fa-map-marker-alt"></i> 540 Street, New York, USA
+              <a href="#" aria-label={tSafe("footer.address", "Address")}>
+                <i className="fas fa-map-marker-alt" aria-hidden></i>{" "}
+                {tSafe("footer.address", "540 Street, New York, USA")}
               </a>
             </li>
             <li>
-              <a href="#">
-                <i className="fas fa-envelope"></i> binance.net.inc@gmail.com
+              <a href="mailto:binance.net.inc@gmail.com" aria-label={tSafe("footer.email", "Email")}>
+                <i className="fas fa-envelope" aria-hidden></i>{" "}
+                {tSafe("footer.email", "binance.net.inc@gmail.com")}
               </a>
             </li>
             <li>
-              <a href="#">
-                <i className="fas fa-phone"></i> +1 5667 8756 467
+              <a href="tel:+156678756467" aria-label={tSafe("footer.phone", "Phone")}>
+                <i className="fas fa-phone" aria-hidden></i>{" "}
+                {tSafe("footer.phone", "+1 5667 8756 467")}
               </a>
             </li>
           </motion.ul>
@@ -197,13 +208,14 @@ export default function InvestFooter() {
                 key={i}
                 className="social-icon"
                 href="#"
+                aria-label={tSafe(`footer.social.${icon}`, icon)}
                 whileHover={{
                   scale: 1.13,
                   backgroundColor: "#1bc6ff",
                 }}
                 transition={{ type: "spring", stiffness: 240 }}
               >
-                <i className={`fab fa-${icon}`}></i>
+                <i className={`fab fa-${icon}`} aria-hidden></i>
               </motion.a>
             ))}
           </motion.div>
@@ -221,7 +233,7 @@ export default function InvestFooter() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.6 }}
           >
-            Popular Posts
+            {tSafe("footer.popular_posts", "Popular Posts")}
           </motion.h4>
           <motion.div
             className="footer-post-group"
@@ -231,12 +243,12 @@ export default function InvestFooter() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div>
-              <div className="footer-post-title">Investment</div>
-              <a href="#">Revisiting Your Investment & Distribution Goals</a>
+              <div className="footer-post-title">{tSafe("footer.post.investment.title", "Investment")}</div>
+              <a href="#">{tSafe("footer.post.investment.link", "Revisiting Your Investment & Distribution Goals")}</a>
             </div>
             <div>
-              <div className="footer-post-title">Business</div>
-              <a href="#">Dimensional Fund Advisors Interview</a>
+              <div className="footer-post-title">{tSafe("footer.post.business.title", "Business")}</div>
+              <a href="#">{tSafe("footer.post.business.link", "Dimensional Fund Advisors Interview")}</a>
             </div>
           </motion.div>
         </motion.div>
@@ -251,8 +263,7 @@ export default function InvestFooter() {
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <span>
-          © 2025 Bitbuy Invest. All rights reserved. | Designed by{" "}
-          <a href="#">HRH</a>
+          {tSafe("footer.bottom", "© 2025 Bitbuy Invest. All rights reserved. | Designed by HRH")}
         </span>
       </motion.div>
     </motion.footer>

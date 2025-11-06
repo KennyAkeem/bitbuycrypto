@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 /* Helper for error messages */
 function getErrorMessage(err, fallback) {
@@ -71,6 +72,11 @@ async function safeLogActivity(userId, event, description = "") {
 }
 
 export default function AuthModal({ initialView = "login", onClose, showToast }) {
+  const { t, i18n } = useTranslation();
+  // track mount to avoid server/client hydration mismatch when using translations
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
   // --- same state/logic as before ---
   const [view, setView] = useState(initialView);
   const { register, login } = useUser();
@@ -137,19 +143,19 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
     let hasError = false;
 
     if (!form.name.trim()) {
-      newFieldErrors.name = "Display name is required.";
+      newFieldErrors.name = isMounted ? t("auth.display_name_required") || "Display name is required." : "Display name is required.";
       hasError = true;
     }
     if (!emailValid) {
-      newFieldErrors.email = "Please enter a valid email address.";
+      newFieldErrors.email = isMounted ? t("auth.invalid_email") || "Please enter a valid email address." : "Please enter a valid email address.";
       hasError = true;
     }
     if (!pwValid) {
-      newFieldErrors.password = "Password must be at least 6 chars, include upper & lower case letters and a number.";
+      newFieldErrors.password = isMounted ? t("auth.password_requirements") || "Password must be at least 6 chars, include upper & lower case letters and a number." : "Password must be at least 6 chars, include upper & lower case letters and a number.";
       hasError = true;
     }
     if (!confirmValid) {
-      newFieldErrors.confirm = "Passwords do not match.";
+      newFieldErrors.confirm = isMounted ? t("auth.passwords_mismatch") || "Passwords do not match." : "Passwords do not match.";
       hasError = true;
     }
 
@@ -168,7 +174,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
       });
 
       resetDialogflowMessengerChat();
-      showToast && showToast("success", "Account created!");
+      showToast && showToast("success", isMounted ? t("auth.account_created") || "Account created!" : "Account created!");
 
       // small delay to allow Supabase to finalize session if it will create one
       await new Promise((r) => setTimeout(r, 900));
@@ -200,7 +206,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
     } catch (err) {
       console.error("Register error", err);
       // show inline error instead of toast for failures
-      setGeneralError(getErrorMessage(err, "Registration failed!"));
+      setGeneralError(getErrorMessage(err, isMounted ? t("auth.registration_failed") || "Registration failed!" : "Registration failed!"));
     } finally {
       setLoading(false);
     }
@@ -213,12 +219,12 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
     setFieldErrors({ name: "", email: "", password: "", confirm: "" });
 
     if (!emailValid) {
-      setFieldErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
+      setFieldErrors((prev) => ({ ...prev, email: isMounted ? t("auth.invalid_email") || "Please enter a valid email address." : "Please enter a valid email address." }));
       setLoading(false);
       return;
     }
     if (!form.password || form.password.length === 0) {
-      setFieldErrors((prev) => ({ ...prev, password: "Enter your password." }));
+      setFieldErrors((prev) => ({ ...prev, password: isMounted ? t("auth.enter_password") || "Enter your password." : "Enter your password." }));
       setLoading(false);
       return;
     }
@@ -230,7 +236,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
       });
 
       resetDialogflowMessengerChat();
-      showToast && showToast("success", "Login successful!");
+      showToast && showToast("success", isMounted ? t("auth.login_successful") || "Login successful!" : "Login successful!");
 
       await new Promise((r) => setTimeout(r, 1000));
 
@@ -251,7 +257,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
     } catch (err) {
       console.error("Login error", err);
       // inline error shown on the form
-      setGeneralError(getErrorMessage(err, "Login failed! Check your credentials."));
+      setGeneralError(getErrorMessage(err, isMounted ? t("auth.login_failed") || "Login failed! Check your credentials." : "Login failed! Check your credentials."));
     } finally {
       setLoading(false);
     }
@@ -264,7 +270,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
 
     const emailToUse = forgotEmail.trim().toLowerCase();
     if (!emailToUse || !emailRe.test(emailToUse)) {
-      setForgotMessage("Enter a valid email.");
+      setForgotMessage(isMounted ? t("auth.enter_valid_email") || "Enter a valid email." : "Enter a valid email.");
       setForgotLoading(false);
       return;
     }
@@ -275,8 +281,8 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
           ? window.location.origin + "/reset-password"
           : undefined,
     });
-    if (error) setForgotMessage(error.message || "Failed to send reset link.");
-    else setForgotMessage("Reset link sent! Check your email.");
+    if (error) setForgotMessage(error.message || (isMounted ? t("auth.reset_failed") || "Failed to send reset link." : "Failed to send reset link."));
+    else setForgotMessage(isMounted ? t("auth.reset_sent") || "Reset link sent! Check your email." : "Reset link sent! Check your email.");
     setForgotLoading(false);
   }
 
@@ -307,6 +313,9 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
 
   if (!mounted || !portalElRef.current) return null;
 
+  // helper to safely get translated strings with English fallback on server
+  const tSafe = (key, fallback) => (isMounted ? (t(key) || fallback) : fallback);
+
   // The modal content. pointer-events set to auto inside so clicks work.
   const modalContent = (
     <div
@@ -325,7 +334,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
           <button
             className="auth-close"
             onClick={onClose}
-            aria-label="Close authentication dialog"
+            aria-label={tSafe("auth.close", "Close authentication dialog")}
           >
             ×
           </button>
@@ -353,10 +362,10 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
             </div>
             <div>
               <h3 id="auth-title" className="auth-title">
-                {view === "register" ? "Create Account" : "Welcome back"}
+                {view === "register" ? tSafe("auth.create_account", "Create Account") : tSafe("auth.welcome_back", "Welcome back")}
               </h3>
               <p className="auth-subtitle">
-                {view === "register" ? "Join us — secure and fast." : "Sign in to continue."}
+                {view === "register" ? tSafe("auth.join_us", "Join us — secure and fast.") : tSafe("auth.sign_in_to_continue", "Sign in to continue.")}
               </p>
             </div>
           </div>
@@ -364,7 +373,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
           {view === "login" && !showForgot ? (
             <div id="login-form" className="auth-form-wrap">
               <form onSubmit={onLogin} noValidate>
-                <label className="auth-label">Email</label>
+                <label className="auth-label">{tSafe("auth.email", "Email")}</label>
                 <input
                   name="email"
                   type="email"
@@ -381,7 +390,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   </div>
                 )}
 
-                <label className="auth-label mt">Password</label>
+                <label className="auth-label mt">{tSafe("auth.password", "Password")}</label>
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -404,7 +413,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                     checked={showPassword}
                     onChange={(e) => setShowPassword(e.target.checked)}
                   />{" "}
-                  Show password
+                  {tSafe("auth.show_password", "Show password")}
                 </label>
 
                 {/* general form-level error */}
@@ -419,7 +428,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   className="auth-primaryBtn"
                   disabled={loading || !emailValid || form.password.length === 0}
                 >
-                  {loading ? <span className="auth-spinner" /> : "Login"}
+                  {loading ? <span className="auth-spinner" /> : tSafe("auth.login", "Login")}
                 </button>
               </form>
 
@@ -431,7 +440,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                     setShowForgot(true);
                   }}
                 >
-                  Forgot password?
+                  {tSafe("auth.forgot_password", "Forgot password?")}
                 </a>
                 <a
                   href="#"
@@ -440,14 +449,14 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                     setView("register");
                   }}
                 >
-                  Register
+                  {tSafe("auth.register", "Register")}
                 </a>
               </div>
             </div>
           ) : view === "login" && showForgot ? (
             <div id="forgot-form" className="auth-form-wrap">
               <form onSubmit={handleForgot} noValidate>
-                <label className="auth-label">Email</label>
+                <label className="auth-label">{tSafe("auth.email", "Email")}</label>
                 <input
                   type="email"
                   className="auth-input"
@@ -458,7 +467,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   aria-invalid={forgotEmail.length > 0 && !emailRe.test(forgotEmail)}
                 />
                 <button type="submit" className="auth-primaryBtn" disabled={forgotLoading}>
-                  {forgotLoading ? <span className="auth-spinner" /> : "Send Reset Link"}
+                  {forgotLoading ? <span className="auth-spinner" /> : tSafe("auth.send_reset_link", "Send Reset Link")}
                 </button>
               </form>
               <button
@@ -468,14 +477,14 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   setForgotMessage("");
                 }}
               >
-                Back to Login
+                {tSafe("auth.back_to_login", "Back to Login")}
               </button>
               {forgotMessage && <div className="auth-message" role="status">{forgotMessage}</div>}
             </div>
           ) : (
             <div id="register-form" className="auth-form-wrap">
               <form onSubmit={onRegister} noValidate>
-                <label className="auth-label">Display Name</label>
+                <label className="auth-label">{tSafe("auth.display_name", "Display Name")}</label>
                 <input
                   name="name"
                   type="text"
@@ -492,7 +501,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   </div>
                 )}
 
-                <label className="auth-label mt">Email</label>
+                <label className="auth-label mt">{tSafe("auth.email", "Email")}</label>
                 <input
                   name="email"
                   type="email"
@@ -509,7 +518,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   </div>
                 )}
 
-                <label className="auth-label mt">Password</label>
+                <label className="auth-label mt">{tSafe("auth.password", "Password")}</label>
                 <input
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -533,28 +542,28 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                     checked={showPassword}
                     onChange={(e) => setShowPassword(e.target.checked)}
                   />{" "}
-                  Show password
+                  {tSafe("auth.show_password", "Show password")}
                 </label>
 
                 <div id="pw-requirements" className="auth-pw-checklist">
                   <div className={pwLen ? "auth-ok" : "auth-fail"}>
-                    {pwLen ? "✓" : "✗"} At least {MIN_LEN} characters
+                    {pwLen ? "✓" : "✗"} {tSafe("auth.min_chars", `At least ${MIN_LEN} characters`)}
                   </div>
                   <div className={pwUpper ? "auth-ok" : "auth-fail"}>
-                    {pwUpper ? "✓" : "✗"} At least one uppercase letter
+                    {pwUpper ? "✓" : "✗"} {tSafe("auth.uppercase", "At least one uppercase letter")}
                   </div>
                   <div className={pwLower ? "auth-ok" : "auth-fail"}>
-                    {pwLower ? "✓" : "✗"} At least one lowercase letter
+                    {pwLower ? "✓" : "✗"} {tSafe("auth.lowercase", "At least one lowercase letter")}
                   </div>
                   <div className={pwDigit ? "auth-ok" : "auth-fail"}>
-                    {pwDigit ? "✓" : "✗"} At least one number
+                    {pwDigit ? "✓" : "✗"} {tSafe("auth.number", "At least one number")}
                   </div>
                   <div className="auth-chars-left">
-                    Characters left: <strong>{charsLeft}</strong>
+                    {tSafe("auth.chars_left", "Characters left")}: <strong>{charsLeft}</strong>
                   </div>
                 </div>
 
-                <label className="auth-label mt">Confirm password</label>
+                <label className="auth-label mt">{tSafe("auth.confirm_password", "Confirm password")}</label>
                 <input
                   name="confirm"
                   type={showPassword ? "text" : "password"}
@@ -583,12 +592,12 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                   className="auth-successBtn"
                   disabled={loading || !emailValid || !pwValid || !confirmValid}
                 >
-                  {loading ? <span className="auth-spinner" /> : "Register"}
+                  {loading ? <span className="auth-spinner" /> : tSafe("auth.register", "Register")}
                 </button>
               </form>
 
               <div className="auth-links">
-                <span className="text-muted small">Already have an account?</span>
+                <span className="text-muted small">{tSafe("auth.already_have_account", "Already have an account?")}</span>
                 <a
                   href="#"
                   onClick={(e) => {
@@ -596,7 +605,7 @@ export default function AuthModal({ initialView = "login", onClose, showToast })
                     setView("login");
                   }}
                 >
-                  Login
+                  {tSafe("auth.login", "Login")}
                 </a>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import CryptoPriceMarquee from "../components/CryptoPriceMarquee";
 import SimulatedAlert from "../components/SimulatedAlert";
 import InvestmentGrowthChart from "../components/InvestmentGrowthChart";
+import { useTranslation } from "react-i18next";
 
 function getCoinBalances(investments, withdrawals) {
   const balances = {};
@@ -20,6 +21,8 @@ function getCoinBalances(investments, withdrawals) {
 }
 
 export default function Profile({ showToast }) {
+  const { t, i18n } = useTranslation();
+
   const { user, updateUser, logout } = useUser();
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -43,6 +46,9 @@ export default function Profile({ showToast }) {
   const fileInputRef = useRef(null);
   const [refCopied, setRefCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // translation helper (hydation-safe): use `mounted` which is already used in the component
+  const tSafe = (key, fallback) => (mounted ? t(key, { defaultValue: fallback }) : fallback);
 
   const referralLink = typeof window !== "undefined"
     ? `${window.location.origin}/register?ref=${user?.referralCode || user?.id || user?.email}`
@@ -131,8 +137,8 @@ export default function Profile({ showToast }) {
   function handleShareReferral() {
     if (navigator.share) {
       navigator.share({
-        title: "Join me on Bitbuy!",
-        text: "Sign up and earn a bonus with my referral link.",
+        title: tSafe("profile.share_title", "Join me on Bitbuy!"),
+        text: tSafe("profile.share_text", "Sign up and earn a bonus with my referral link."),
         url: referralLink
       });
     } else {
@@ -144,16 +150,16 @@ export default function Profile({ showToast }) {
   function handleCopyAddress(address) {
     if (address) {
       navigator.clipboard.writeText(address);
-      showToast && showToast("success", "Address copied!");
+      showToast && showToast("success", tSafe("profile.address_copied", "Address copied!"));
     } else {
-      showToast && showToast("error", "No address to copy!");
+      showToast && showToast("error", tSafe("profile.no_address", "No address to copy!"));
     }
   }
 
   async function handleInvest(e) {
     e.preventDefault();
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      showToast && showToast("error", "Enter a valid amount!");
+      showToast && showToast("error", tSafe("profile.invalid_amount", "Enter a valid amount!"));
       return;
     }
     const userId = user.id;
@@ -170,9 +176,9 @@ export default function Profile({ showToast }) {
       .insert([newInvestment]);
 
     if (error) {
-      showToast && showToast("error", "Failed to record investment!");
+      showToast && showToast("error", tSafe("profile.deposit_fail", "Failed to record investment!"));
     } else {
-      showToast && showToast("success", "Deposit successful!");
+      showToast && showToast("success", tSafe("profile.deposit_success", "Deposit successful!"));
       const { data, error: fetchError } = await supabase
         .from("investments")
         .select("*")
@@ -191,15 +197,15 @@ export default function Profile({ showToast }) {
     const bal = balances[withdrawCoin];
     const amtNum = Number(withdrawAmount);
     if (!amtNum || amtNum <= 0) {
-      setWithdrawErr("Enter a valid amount!");
+      setWithdrawErr(tSafe("profile.withdraw_invalid_amount", "Enter a valid amount!"));
       return;
     }
     if (amtNum > bal) {
-      setWithdrawErr("Cannot withdraw more than your balance!");
+      setWithdrawErr(tSafe("profile.withdraw_over_balance", "Cannot withdraw more than your balance!"));
       return;
     }
     if (!withdrawAddress.trim()) {
-      setWithdrawErr("Wallet address required!");
+      setWithdrawErr(tSafe("profile.withdraw_address_required", "Wallet address required!"));
       return;
     }
     const userId = user.id;
@@ -216,11 +222,11 @@ export default function Profile({ showToast }) {
       .from("withdrawals")
       .insert([newWithdrawal]);
     if (error) {
-      setWithdrawErr("Failed to record withdrawal!");
+      setWithdrawErr(tSafe("profile.withdraw_fail", "Failed to record withdrawal!"));
     } else {
       showToast && showToast(
         "info",
-        `Withdrawal request for ${amtNum} ${withdrawCoin.toUpperCase()} submitted. Waiting admin approval.`,
+        tSafe("profile.withdraw_request_msg", "Withdrawal request for {{amount}} {{coin}} submitted. Waiting admin approval.", { amount: amtNum, coin: withdrawCoin.toUpperCase() }),
         4000
       );
       const { data, error: fetchError } = await supabase
@@ -241,7 +247,7 @@ export default function Profile({ showToast }) {
   function handleWithdraw() {
     const coinsWithFunds = Object.entries(balances).filter(([c, amt]) => amt > 0);
     if (coinsWithFunds.length === 0) {
-      setWithdrawMsg("Nothing to withdraw yet. Invest now to start earning!");
+      setWithdrawMsg(tSafe("profile.withdraw_nothing", "Nothing to withdraw yet. Invest now to start earning!"));
       setWithdrawCoin("btc");
       setWithdrawAmount("");
       setWithdrawAddress("");
@@ -260,7 +266,7 @@ export default function Profile({ showToast }) {
   function handleEditProfile(e) {
     e.preventDefault();
     if (!editName.trim()) {
-      showToast && showToast("error", "Display name required!");
+      showToast && showToast("error", tSafe("profile.display_name_required", "Display name required!"));
       return;
     }
     updateUser({
@@ -269,14 +275,14 @@ export default function Profile({ showToast }) {
       profilePic: picPreview
     });
     setEditing(false);
-    showToast && showToast("success", "Profile updated!");
+    showToast && showToast("success", tSafe("profile.profile_updated", "Profile updated!"));
   }
 
   function handlePicChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 200 * 1024) {
-      showToast && showToast("error", "Profile picture must be less than 200KB.");
+      showToast && showToast("error", tSafe("profile.pic_too_large", "Profile picture must be less than 200KB."));
       return;
     }
     const reader = new FileReader();
@@ -287,17 +293,18 @@ export default function Profile({ showToast }) {
   }
 
   function handleDeleteAccount() {
-    if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
+    const confirmMsg = tSafe("profile.confirm_delete_account", "Are you sure you want to delete your account? This cannot be undone.");
+    if (window.confirm(confirmMsg)) {
       logout();
-      showToast && showToast("success", "Account deleted!");
+      showToast && showToast("success", tSafe("profile.account_deleted", "Account deleted!"));
       router.replace("/");
     }
   }
 
   // Ensure we wait for client mount to avoid SSR/CSR mismatch
-  if (!mounted) return <div>Loading...</div>;
-  if (user === undefined) return <div>Loading...</div>;
-  if (!user) return <div>Not authorized</div>;
+  if (!mounted) return <div>{tSafe("profile.loading", "Loading...")}</div>;
+  if (user === undefined) return <div>{tSafe("profile.loading", "Loading...")}</div>;
+  if (!user) return <div>{tSafe("profile.not_authorized", "Not authorized")}</div>;
 
   const balances = getCoinBalances(investments, withdrawals);
 
@@ -347,14 +354,14 @@ export default function Profile({ showToast }) {
           <div className="d-flex flex-column align-items-center">
             <img
               src={user.profilePic || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.name || "U") + "&background=random"}
-              alt="profile"
+              alt={tSafe("profile.profile_alt", "profile")}
               className="rounded-circle mb-2"
               style={{ width: 80, height: 80, objectFit: "cover", border: "2px solid #1bc6ff" }}
             />
             <h2 className="fw-bold mb-2">{user.name}</h2>
-            <p className="text-muted">Email: {user.email}</p>
+            <p className="text-muted">{tSafe("profile.email_label", "Email")}: {user.email}</p>
             <button className="btn btn-outline-primary btn-sm mt-2" onClick={() => setEditing(true)}>
-              Edit Profile
+              {tSafe("profile.edit_profile_button", "Edit Profile")}
             </button>
           </div>
         </div>
@@ -378,15 +385,16 @@ export default function Profile({ showToast }) {
             <i
               className="bi bi-currency-dollar text-warning"
               style={{ fontSize: "2rem" }}
+              aria-hidden
             ></i>
           </div>
         </div>
 
         {/* Title */}
         <h5 className="fw-bold text-dark mb-3">
-          Quick Guide{" "}
+          {tSafe("profile.quick_guide_title", "Quick Guide")}&nbsp;
           <span className="badge bg-light text-warning border border-warning ms-1">
-            Read Carefully
+            {tSafe("profile.quick_guide_badge", "Read Carefully")}
           </span>
         </h5>
 
@@ -395,32 +403,28 @@ export default function Profile({ showToast }) {
           className="bg-light p-3 p-md-4 rounded-3 mx-auto text-start"
           style={{ maxWidth: "600px" }}
         >
-          <h6 className="fw-bold mb-3 text-center">How to get started:</h6>
+          <h6 className="fw-bold mb-3 text-center">{tSafe("profile.how_to_get_started_heading", "How to get started:")}</h6>
           <ol className="text-muted small mb-0 ps-3">
             <li>
-              Click <strong  onClick={() => setModalOpen(true)}>"Invest Now"</strong> .
+              {tSafe("profile.step_1_prefix", "Click")} <strong onClick={() => setModalOpen(true)}>{tSafe("profile.invest_now", '"Invest Now"')}</strong>.
             </li>
             <li>
-              Select your preferred cryptocurrency and network (if applicable).
+              {tSafe("profile.step_2", "Select your preferred cryptocurrency and network (if applicable).")}
             </li>
-            <li>Copy the deposit address.</li>
-            <li>
-              Send cryptocurrency to the provided (copied) address.
-            </li>
-            <li>Confirm your payment.</li>
-            <li>Wait for admin confirmation.</li>
-            <li>
-              Your investment starts yielding interests immediately your deposit is confirmed.
-            </li>
-            <li>Monitor your investment growth in the dashboard.</li>
-            <li>Withdraw your earnings anytime!</li>
+            <li>{tSafe("profile.step_3", "Copy the deposit address.")}</li>
+            <li>{tSafe("profile.step_4", "Send cryptocurrency to the provided (copied) address.")}</li>
+            <li>{tSafe("profile.step_5", "Confirm your payment.")}</li>
+            <li>{tSafe("profile.step_6", "Wait for admin confirmation.")}</li>
+            <li>{tSafe("profile.step_7", "Your investment starts yielding interests immediately your deposit is confirmed.")}</li>
+            <li>{tSafe("profile.step_8", "Monitor your investment growth in the dashboard.")}</li>
+            <li>{tSafe("profile.step_9", "Withdraw your earnings anytime!")}</li>
           </ol>
         </div>
 
         {/* Button (optional) */}
         <div className="d-flex justify-content-center mt-4">
           <button className="btn btn-warning fw-semibold px-4" onClick={() => setModalOpen(true)}>
-            Invest Now
+            {tSafe("profile.invest_now_cta", "Invest Now")}
           </button>
         </div>
       </div>
@@ -435,14 +439,14 @@ export default function Profile({ showToast }) {
             <div className="modal-content">
               <form onSubmit={handleEditProfile}>
                 <div className="modal-header">
-                  <h5 className="modal-title">Edit Profile</h5>
-                  <button type="button" className="btn-close" onClick={() => setEditing(false)}></button>
+                  <h5 className="modal-title">{tSafe("profile.edit_profile_modal_title", "Edit Profile")}</h5>
+                  <button type="button" className="btn-close" aria-label={tSafe("profile.close", "Close")} onClick={() => setEditing(false)}></button>
                 </div>
                 <div className="modal-body">
                   <div className="mb-3 text-center">
                     <img
                       src={picPreview || "https://ui-avatars.com/api/?name=" + encodeURIComponent(editName || "U") + "&background=random"}
-                      alt="preview"
+                      alt={tSafe("profile.preview_alt", "preview")}
                       className="rounded-circle mb-2"
                       style={{ width: 80, height: 80, objectFit: "cover", border: "2px solid #1bc6ff" }}
                     />
@@ -453,13 +457,14 @@ export default function Profile({ showToast }) {
                         ref={fileInputRef}
                         style={{ display: "none" }}
                         onChange={handlePicChange}
+                        aria-label={tSafe("profile.change_picture_input", "Change picture input")}
                       />
                       <button
                         type="button"
                         className="btn btn-sm btn-secondary"
                         onClick={() => fileInputRef.current?.click()}
                       >
-                        Change Picture
+                        {tSafe("profile.change_picture", "Change Picture")}
                       </button>
                       {picPreview && (
                         <button
@@ -467,13 +472,13 @@ export default function Profile({ showToast }) {
                           className="btn btn-sm btn-outline-danger ms-2"
                           onClick={() => setPicPreview("")}
                         >
-                          Remove
+                          {tSafe("profile.remove_picture", "Remove")}
                         </button>
                       )}
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Display Name</label>
+                    <label className="form-label fw-bold">{tSafe("profile.display_name_label", "Display Name")}</label>
                     <input
                       type="text"
                       className="form-control"
@@ -484,12 +489,12 @@ export default function Profile({ showToast }) {
                   </div>
                 </div>
                 <div className="modal-footer d-flex justify-content-between">
-                  <button type="submit" className="btn btn-primary">Save</button>
+                  <button type="submit" className="btn btn-primary">{tSafe("profile.save", "Save")}</button>
                   <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>
-                    Cancel
+                    {tSafe("profile.cancel", "Cancel")}
                   </button>
                   <button type="button" className="btn btn-danger" onClick={handleDeleteAccount}>
-                    Delete Account
+                    {tSafe("profile.delete_account", "Delete Account")}
                   </button>
                 </div>
               </form>
@@ -501,26 +506,26 @@ export default function Profile({ showToast }) {
 <div className="row mb-4">
   <div className="col-md-10 mx-auto">
     <div className="d-flex justify-content-between align-items-center mb-3">
-      <h4>Your Investments</h4>
+      <h4>{tSafe("profile.your_investments", "Your Investments")}</h4>
       <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
-        Add Funds
+        {tSafe("profile.add_funds", "Add Funds")}
       </button>
     </div>
     <div className="table-responsive">
       <table className="table table-bordered align-middle">
         <thead className="table-secondary">
           <tr>
-            <th>Coin</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Time</th>
+            <th>{tSafe("profile.col_coin", "Coin")}</th>
+            <th>{tSafe("profile.col_amount", "Amount")}</th>
+            <th>{tSafe("profile.col_status", "Status")}</th>
+            <th>{tSafe("profile.col_time", "Time")}</th>
           </tr>
         </thead>
         <tbody>
           {investments.length === 0 ? (
             <tr>
               <td colSpan={4} className="text-center text-muted">
-                No investments yet.
+                {tSafe("profile.no_investments", "No investments yet.")}
               </td>
             </tr>
           ) : (
@@ -550,7 +555,7 @@ export default function Profile({ showToast }) {
                     />
                     {inv.coin}
                     {inv.coin === "eth" && (
-                      <span className="badge badge-erc20 ms-2">ERC20</span>
+                      <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>
                     )}
                     {inv.coin === "usdt" && inv.network && (
                       <span
@@ -593,7 +598,7 @@ export default function Profile({ showToast }) {
       <div className="row mb-4">
         <div className="col-md-10 mx-auto text-end">
           <button className="btn btn-warning mt-3" onClick={handleWithdraw}>
-            Withdraw Funds
+            {tSafe("profile.withdraw_funds", "Withdraw Funds")}
           </button>
         </div>
       </div>
@@ -601,16 +606,16 @@ export default function Profile({ showToast }) {
     {/* Transaction History */}
 <div className="row mb-4">
   <div className="col-md-10 mx-auto">
-    <h4>Transaction History</h4>
+    <h4>{tSafe("profile.transaction_history", "Transaction History")}</h4>
     <div className="table-responsive">
       <table className="table table-bordered align-middle">
         <thead className="table-secondary">
           <tr>
-            <th>Type</th>
-            <th>Coin</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Time</th>
+            <th>{tSafe("profile.col_type", "Type")}</th>
+            <th>{tSafe("profile.col_coin", "Coin")}</th>
+            <th>{tSafe("profile.col_amount", "Amount")}</th>
+            <th>{tSafe("profile.col_status", "Status")}</th>
+            <th>{tSafe("profile.col_time", "Time")}</th>
           </tr>
         </thead>
         <tbody>
@@ -650,7 +655,7 @@ export default function Profile({ showToast }) {
                     />
                     {tx.coin}
                     {tx.coin === "eth" && (
-                      <span className="badge badge-erc20 ms-2">ERC20</span>
+                      <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>
                     )}
                     {tx.coin === "usdt" && tx.network && (
                       <span
@@ -696,12 +701,12 @@ export default function Profile({ showToast }) {
             <div className="modal-content">
               <form onSubmit={handleInvest}>
                 <div className="modal-header">
-                  <h5 className="modal-title">New Investment</h5>
-                  <button type="button" className="btn-close" onClick={() => setModalOpen(false)}></button>
+                  <h5 className="modal-title">{tSafe("profile.new_investment", "New Investment")}</h5>
+                  <button type="button" className="btn-close" aria-label={tSafe("profile.close", "Close")} onClick={() => setModalOpen(false)}></button>
                 </div>
                 <div className="modal-body">
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Select Coin</label>
+                    <label className="form-label fw-bold">{tSafe("profile.select_coin", "Select Coin")}</label>
                     <div className="d-flex gap-3">
                       {["btc", "eth", "usdt"].map(c => (
                         <div key={c} style={{ position: "relative" }}>
@@ -723,7 +728,7 @@ export default function Profile({ showToast }) {
                                   zIndex: 2,
                                 }}
                               >
-                                Network!
+                                {tSafe("profile.network_label", "Network!")}
                               </span>
                             </>
                           )}
@@ -744,7 +749,7 @@ export default function Profile({ showToast }) {
                                 zIndex: 2,
                               }}
                             >
-                              ERC20
+                              {tSafe("profile.badge_erc20", "ERC20")}
                             </span>
                           )}
                           <button
@@ -762,7 +767,7 @@ export default function Profile({ showToast }) {
                   {/* If USDT, let user pick network */}
                   {coin === "usdt" && (
                     <div className="mb-3">
-                      <label className="form-label fw-bold">Select USDT Network</label>
+                      <label className="form-label fw-bold">{tSafe("profile.select_usdt_network", "Select USDT Network")}</label>
                       <div className="d-flex gap-3">
                         {["BEP20", "TRC20"].map(net => (
                           <button
@@ -778,7 +783,7 @@ export default function Profile({ showToast }) {
                     </div>
                   )}
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Deposit Address</label>
+                    <label className="form-label fw-bold">{tSafe("profile.deposit_address", "Deposit Address")}</label>
                     <div className="input-group">
                       <input
                         type="text"
@@ -799,12 +804,12 @@ export default function Profile({ showToast }) {
                           coin === "usdt" && network ? getAddress("usdt", network) : ""
                         )}
                       >
-                        Copy
+                        {tSafe("profile.copy", "Copy")}
                       </button>
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-bold">Amount</label>
+                    <label className="form-label fw-bold">{tSafe("profile.amount_label", "Amount")}</label>
                     <input
                       type="number"
                       className="form-control"
@@ -817,8 +822,8 @@ export default function Profile({ showToast }) {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="submit" className="btn btn-primary">Pay Now</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary">{tSafe("profile.pay_now", "Pay Now")}</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setModalOpen(false)}>{tSafe("profile.cancel", "Cancel")}</button>
                 </div>
               </form>
             </div>
@@ -832,8 +837,8 @@ export default function Profile({ showToast }) {
             <div className="modal-content">
               <form onSubmit={withdrawMsg ? undefined : submitWithdraw}>
                 <div className="modal-header">
-                  <h5 className="modal-title">Withdrawal</h5>
-                  <button type="button" className="btn-close" onClick={() => {
+                  <h5 className="modal-title">{tSafe("profile.withdrawal", "Withdrawal")}</h5>
+                  <button type="button" className="btn-close" aria-label={tSafe("profile.close", "Close")} onClick={() => {
                     setWithdrawModalOpen(false);
                     setWithdrawAddress("");
                     setWithdrawNetwork("");
@@ -845,7 +850,7 @@ export default function Profile({ showToast }) {
                   ) : (
                     <>
                       <div className="mb-3">
-                        <label className="form-label fw-bold">Select Coin</label>
+                        <label className="form-label fw-bold">{tSafe("profile.select_coin", "Select Coin")}</label>
                         <select
                           className="form-select"
                           value={withdrawCoin}
@@ -863,21 +868,21 @@ export default function Profile({ showToast }) {
                       {/* If USDT, pick network */}
                       {withdrawCoin === "usdt" && (
                         <div className="mb-3">
-                          <label className="form-label fw-bold">Select USDT Network</label>
+                          <label className="form-label fw-bold">{tSafe("profile.select_usdt_network", "Select USDT Network")}</label>
                           <select
                             className="form-select"
                             value={withdrawNetwork}
                             onChange={e => setWithdrawNetwork(e.target.value)}
                             required
                           >
-                            <option value="">Select Network</option>
+                            <option value="">{tSafe("profile.select_network_placeholder", "Select Network")}</option>
                             <option value="BEP20">BEP20</option>
                             <option value="TRC20">TRC20</option>
                           </select>
                         </div>
                       )}
                       <div className="mb-3">
-                        <label className="form-label fw-bold">Withdrawal Amount</label>
+                        <label className="form-label fw-bold">{tSafe("profile.withdrawal_amount", "Withdrawal Amount")}</label>
                         <input
                           type="number"
                           className="form-control"
@@ -893,13 +898,13 @@ export default function Profile({ showToast }) {
                         {withdrawErr && <div className="text-danger mt-2">{withdrawErr}</div>}
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-bold">Wallet Address</label>
+                        <label className="form-label fw-bold">{tSafe("profile.wallet_address", "Wallet Address")}</label>
                         <input
                           type="text"
                           className="form-control"
                           value={withdrawAddress}
                           onChange={e => setWithdrawAddress(e.target.value)}
-                          placeholder="Enter your wallet address"
+                          placeholder={tSafe("profile.wallet_placeholder", "Enter your wallet address")}
                           required
                         />
                       </div>
@@ -913,17 +918,17 @@ export default function Profile({ showToast }) {
                       setWithdrawAddress("");
                       setWithdrawNetwork("");
                     }}>
-                      Close
+                      {tSafe("profile.close", "Close")}
                     </button>
                   ) : (
                     <>
-                      <button type="submit" className="btn btn-warning">Withdraw</button>
+                      <button type="submit" className="btn btn-warning">{tSafe("profile.withdraw_button", "Withdraw")}</button>
                       <button type="button" className="btn btn-secondary" onClick={() => {
                         setWithdrawModalOpen(false);
                         setWithdrawAddress("");
                         setWithdrawNetwork("");
                       }}>
-                        Cancel
+                        {tSafe("profile.cancel", "Cancel")}
                       </button>
                     </>
                   )}

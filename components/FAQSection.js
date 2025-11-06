@@ -1,43 +1,59 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
-
-
+/*
+  FAQ data references translation keys (qKey/aKey) with English fallbacks.
+  This keeps the component hydration-safe: we render English fallbacks on server,
+  then switch to translations after client mount.
+*/
 const FAQS = [
   {
     id: "what-is-bitbuy",
-    q: "What is Bitbuy?",
-    a:
+    qKey: "faq.what_is_bitbuy.q",
+    qFallback: "What is Bitbuy?",
+    aKey: "faq.what_is_bitbuy.a",
+    aFallback:
       "Bitbuy is a trusted investment platform that allows users to invest securely in cryptocurrencies such as Bitcoin, Ethereum, and USDT. We focus on making digital investing simple, transparent, and accessible while applying disciplined risk-management and data-driven strategies.",
   },
   {
     id: "industries",
-    q: "What industries do you specialize in?",
-    a:
+    qKey: "faq.industries.q",
+    qFallback: "What industries do you specialize in?",
+    aKey: "faq.industries.a",
+    aFallback:
       "We specialize in cryptocurrency and digital assets. Our primary markets include Bitcoin (BTC), Ethereum (ETH), USDT (BEP20 / TRC20), and related DeFi opportunities. We combine automated strategies with human oversight to capture market opportunities responsibly.",
   },
   {
     id: "guarantee-growth",
-    q: "Can you guarantee growth?",
-    a:
+    qKey: "faq.guarantee_growth.q",
+    qFallback: "Can you guarantee growth?",
+    aKey: "faq.guarantee_growth.a",
+    aFallback:
       "No legitimate investment can promise guaranteed returns. Bitbuy commits to transparency and professional risk management — we aim to maximize returns while minimizing avoidable risk through analytics and adaptive strategies. Past performance is not a guarantee of future results.",
   },
   {
     id: "plans-special",
-    q: "What makes your investment plans special?",
-    a:
+    qKey: "faq.plans_special.q",
+    qFallback: "What makes your investment plans special?",
+    aKey: "faq.plans_special.a",
+    aFallback:
       "Our plans balance clear durations, transparent yields, and automated execution. We tailor plans for different investor goals (short-term, growth, capital preservation) and continuously monitor performance to optimize outcomes.",
   },
   {
     id: "deposits-withdrawals",
-    q: "How do deposits and withdrawals work?",
-    a:
+    qKey: "faq.deposits_withdrawals.q",
+    qFallback: "How do deposits and withdrawals work?",
+    aKey: "faq.deposits_withdrawals.a",
+    aFallback:
       "Wallets are generated and visible only to Authenticated Users. Deposits are recorded as pending until the system confirms. Withdrawals are requested from your dashboard and require admin approval for processing to ensure security.",
   },
   {
     id: "user-security",
-    q: "How is user security handled?",
-    a:
+    qKey: "faq.user_security.q",
+    qFallback: "How is user security handled?",
+    aKey: "faq.user_security.a",
+    aFallback:
       "We enforce secure authentication, (RLS) in the database, encrypted communications, and operational controls for admin actions. Never share your service keys and use strong passwords / 2FA when available.",
   },
 ];
@@ -58,17 +74,35 @@ function ChevronIcon({ open }) {
 }
 
 export default function FAQSection() {
+  const { t, i18n } = useTranslation();
+
+  // hydration-safe: only use t(...) after mount to avoid SSR/client mismatch
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
+  const tSafe = (key, fallback) => (isMounted ? t(key, { defaultValue: fallback }) : fallback);
+
   // store openId (stable) rather than index so filtering doesn't break state
   const [openId, setOpenId] = useState(FAQS[0]?.id || null);
   const [query, setQuery] = useState("");
-  const prefersReduced = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prefersReduced =
+    typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Filtered FAQs
+  // helper to get text for a FAQ item (question / answer) with translation support
+  const getQ = (item) => (isMounted ? t(item.qKey, { defaultValue: item.qFallback }) : item.qFallback);
+  const getA = (item) => (isMounted ? t(item.aKey, { defaultValue: item.aFallback }) : item.aFallback);
+
+  // Filtered FAQs (recompute when query, i18n.language or mount state change)
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return FAQS;
-    return FAQS.filter((f) => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q));
-  }, [query]);
+    return FAQS.filter((f) => {
+      const qText = getQ(f).toLowerCase();
+      const aText = getA(f).toLowerCase();
+      return qText.includes(q) || aText.includes(q);
+    });
+    // include i18n.language so we re-filter when language switches (client only)
+  }, [query, i18n.language, isMounted]);
 
   // If current openId is not in filtered results, close it (or open the first filtered)
   useEffect(() => {
@@ -86,7 +120,8 @@ export default function FAQSection() {
   // keyboard: open next/prev with arrow keys when focus is inside list
   useEffect(() => {
     function onKey(e) {
-      const focusInside = document.activeElement && document.activeElement.closest(".faq-grid");
+      if (typeof document === "undefined") return;
+      const focusInside = document.activeElement && document.activeElement.closest && document.activeElement.closest(".faq-grid");
       if (!focusInside) return;
       const ids = filtered.map((f) => f.id);
       const idx = ids.indexOf(openId);
@@ -102,8 +137,10 @@ export default function FAQSection() {
         document.getElementById(`${prev}-button`)?.focus();
       }
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    if (typeof window !== "undefined") {
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }
   }, [filtered, openId]);
 
   return (
@@ -118,16 +155,16 @@ export default function FAQSection() {
       <div className="faq-inner container">
         <header className="faq-head">
           <div className="faq-head-left">
-            <p className="eyebrow">FAQs</p>
+            <p className="eyebrow">{tSafe("faq.eyebrow", "FAQs")}</p>
             <h2 id="faq-heading" className="faq-title">
-              Get the answers to common questions
+              {tSafe("faq.title", "Get the answers to common questions")}
             </h2>
-            <p className="lead">Quickly find help or read the most common questions about Bitbuy.</p>
+            <p className="lead">{tSafe("faq.lead", "Quickly find help or read the most common questions about Bitbuy.")}</p>
           </div>
 
           <div className="faq-controls">
             <label className="search-label" htmlFor="faq-search">
-              Search FAQs
+              {tSafe("faq.search_label", "Search FAQs")}
             </label>
             <div className="search-wrap">
               <input
@@ -135,15 +172,15 @@ export default function FAQSection() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by keyword (deposits, withdraw, plans...)"
-                aria-label="Search frequently asked questions"
+                placeholder={tSafe("faq.search_placeholder", "Search by keyword (deposits, withdraw, plans...)")}
+                aria-label={tSafe("faq.aria_search", "Search frequently asked questions")}
                 className="search-input"
               />
               <button
                 className="clear-btn"
                 onClick={() => setQuery("")}
-                aria-label="Clear search"
-                title="Clear"
+                aria-label={tSafe("faq.clear", "Clear search")}
+                title={tSafe("faq.clear", "Clear")}
                 type="button"
               >
                 ✕
@@ -152,10 +189,10 @@ export default function FAQSection() {
 
             <div className="actions">
               <button className="action-btn" onClick={() => setOpenId(null)} type="button" aria-pressed={openId === null}>
-                Collapse all
+                {tSafe("faq.collapse_all", "Collapse all")}
               </button>
               <button className="action-btn primary" onClick={() => setOpenId(filtered[0]?.id ?? null)} type="button">
-                Expand first
+                {tSafe("faq.expand_first", "Expand first")}
               </button>
             </div>
           </div>
@@ -163,11 +200,13 @@ export default function FAQSection() {
 
         <div className="faq-grid" role="list">
           {filtered.length === 0 ? (
-            <div className="no-results">No results found. Try a different keyword.</div>
+            <div className="no-results">{tSafe("faq.no_results", "No results found. Try a different keyword.")}</div>
           ) : (
             filtered.map((item, idx) => {
               const id = item.id;
               const isOpen = openId === id;
+              const qText = getQ(item);
+              const aText = getA(item);
               return (
                 <motion.article
                   key={id}
@@ -192,7 +231,7 @@ export default function FAQSection() {
                             <path d="M21 21l-6-6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </span>
-                        <span className="q-text">{item.q}</span>
+                        <span className="q-text">{qText}</span>
                       </span>
                       <span className="q-right">
                         <ChevronIcon open={isOpen} />
@@ -213,7 +252,7 @@ export default function FAQSection() {
                         transition={{ duration: prefersReduced ? 0 : 0.32, ease: "easeInOut" }}
                       >
                         <div className="answer-body">
-                          {item.a.split("\n").map((p, i) => (
+                          {aText.split("\n").map((p, i) => (
                             <p key={i}>{p.trim()}</p>
                           ))}
                         </div>

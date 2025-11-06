@@ -1,28 +1,56 @@
+import React, { useState, useEffect } from "react";
 import Slider from "react-slick";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
-const slides = [
+/*
+  Translation-ready HeroCarousel.
+  - Uses hydration-safe pattern (isMounted + tSafe) to avoid Next.js hydration mismatches.
+  - Slide text comes from translation keys with English fallbacks.
+  - Keep images and layout unchanged.
+*/
+
+const SLIDES = [
   {
     img: "/images/carousel-1.jpg",
-    caption: "The Most Prestigious Investments Company",
-    description: "Invest with confidence in BTC, ETH, and USDT — fast, secure, and reliable.",
-    cta: "Apply Now",
+    captionKey: "hero.slide1.caption",
+    captionFallback: "The Most Prestigious Investments Company",
+    descriptionKey: "hero.slide1.description",
+    descriptionFallback: "Invest with confidence in BTC, ETH, and USDT — fast, secure, and reliable.",
+    ctaKey: "hero.slide1.cta",
+    ctaFallback: "Apply Now",
   },
   {
     img: "/images/carousel-2.jpg",
-    caption: "Real-Time Crypto Insights",
-    description: "Stay ahead with live crypto price tracking and instant transaction updates.",
-    cta: "Start Investing",
+    captionKey: "hero.slide2.caption",
+    captionFallback: "Real-Time Crypto Insights",
+    descriptionKey: "hero.slide2.description",
+    descriptionFallback: "Stay ahead with live crypto price tracking and instant transaction updates.",
+    ctaKey: "hero.slide2.cta",
+    ctaFallback: "Start Investing",
   },
   {
     img: "/images/carousel-3.jpg",
-    caption: "Admin-Approved Transactions",
-    description: "Every investment is reviewed manually for your safety and transparency.",
-    cta: "Read More",
+    captionKey: "hero.slide3.caption",
+    captionFallback: "Admin-Approved Transactions",
+    descriptionKey: "hero.slide3.description",
+    descriptionFallback: "Every investment is reviewed manually for your safety and transparency.",
+    ctaKey: "hero.slide3.cta",
+    ctaFallback: "Read More",
   },
 ];
 
 export default function HeroCarousel({ onApply }) {
+  const { t } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // hydration-safe: enable translations only after client mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const tSafe = (key, fallback) => (isMounted ? t(key, { defaultValue: fallback }) : fallback);
+
   const settings = {
     dots: true,
     infinite: true,
@@ -38,40 +66,47 @@ export default function HeroCarousel({ onApply }) {
   };
 
   return (
-    <div className="hero-carousel-outer mb-8">
+    <div className="hero-carousel-outer mb-8" role="region" aria-label={tSafe("hero.aria_label", "Hero carousel")}>
       <Slider {...settings}>
-        {slides.map((slide, idx) => (
-          <div key={idx}>
-            <div className="carousel-slide-container">
-              <motion.img
-                src={slide.img}
-                alt={slide.caption}
-                className="carousel-slide-img"
-                initial={{ scale: 1 }}
-                animate={{ scale: 1.05 }}
-                transition={{ duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-              />
+        {SLIDES.map((slide, idx) => {
+          const caption = tSafe(slide.captionKey, slide.captionFallback);
+          const description = tSafe(slide.descriptionKey, slide.descriptionFallback);
+          const cta = tSafe(slide.ctaKey, slide.ctaFallback);
 
-              <motion.div
-                className="carousel-caption-future"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-              >
-                <h1 className="carousel-caption-title">{slide.caption}</h1>
-                <p className="carousel-caption-desc">{slide.description}</p>
-                <motion.button 
-                  className="carousel-caption-btn"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onApply}
+          return (
+            <div key={idx}>
+              <div className="carousel-slide-container">
+                <motion.img
+                  src={slide.img}
+                  alt={caption}
+                  className="carousel-slide-img"
+                  initial={{ scale: 1 }}
+                  animate={{ scale: 1.05 }}
+                  transition={{ duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+                />
+
+                <motion.div
+                  className="carousel-caption-future"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
                 >
-                  {slide.cta}
-                </motion.button>
-              </motion.div>
+                  <h1 className="carousel-caption-title">{caption}</h1>
+                  <p className="carousel-caption-desc">{description}</p>
+                  <motion.button
+                    className="carousel-caption-btn"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onApply}
+                    aria-label={cta}
+                  >
+                    {cta}
+                  </motion.button>
+                </motion.div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </Slider>
 
       <style jsx global>{`

@@ -1,18 +1,70 @@
+import React, { useState, useEffect, useRef } from "react";
 import { useUser } from "../context/UserContext";
 import { useRouter } from "next/router";
 import { motion, useMotionValue } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
-const plans = [
-  { id: "starter", name: "Starter Plan", range: "$100 - $500", duration: "24 hours", yield: "5% daily", accent: "#3b82f6" },
-  { id: "growth", name: "Growth Plan", range: "$500 - $1000", duration: "24 hours", yield: "8% daily", accent: "#3b82f6" },
-  { id: "premium", name: "Premium Plan", range: "$1000 - $10,000", duration: "48 hours", yield: "15% daily", accent: "#3b82f6" },
-  { id: "elite", name: "Elite Plan", range: "$10,000 - unlimited", duration: "72 hours", yield: "30% daily", accent: "#001f52" },
+const PLANS = [
+  {
+    id: "starter",
+    nameKey: "plans.starter.name",
+    nameFallback: "Starter Plan",
+    rangeKey: "plans.starter.range",
+    rangeFallback: "$100 - $500",
+    durationKey: "plans.starter.duration",
+    durationFallback: "24 hours",
+    yieldKey: "plans.starter.yield",
+    yieldFallback: "5% daily",
+    accent: "#3b82f6",
+  },
+  {
+    id: "growth",
+    nameKey: "plans.growth.name",
+    nameFallback: "Growth Plan",
+    rangeKey: "plans.growth.range",
+    rangeFallback: "$500 - $1000",
+    durationKey: "plans.growth.duration",
+    durationFallback: "24 hours",
+    yieldKey: "plans.growth.yield",
+    yieldFallback: "8% daily",
+    accent: "#3b82f6",
+  },
+  {
+    id: "premium",
+    nameKey: "plans.premium.name",
+    nameFallback: "Premium Plan",
+    rangeKey: "plans.premium.range",
+    rangeFallback: "$1000 - $10,000",
+    durationKey: "plans.premium.duration",
+    durationFallback: "48 hours",
+    yieldKey: "plans.premium.yield",
+    yieldFallback: "15% daily",
+    accent: "#3b82f6",
+  },
+  {
+    id: "elite",
+    nameKey: "plans.elite.name",
+    nameFallback: "Elite Plan",
+    rangeKey: "plans.elite.range",
+    rangeFallback: "$10,000 - unlimited",
+    durationKey: "plans.elite.duration",
+    durationFallback: "72 hours",
+    yieldKey: "plans.elite.yield",
+    yieldFallback: "30% daily",
+    accent: "#001f52",
+  },
 ];
 
 export default function InvestmentPlans() {
   const { user, openAuthModal } = useUser();
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+
+  // hydration-safe: only render translations after mount to avoid SSR mismatch
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+  const tSafe = (key, fallback) => (isMounted ? t(key, { defaultValue: fallback }) : fallback);
+
   const sectionRef = useRef(null);
 
   // motion values
@@ -24,24 +76,28 @@ export default function InvestmentPlans() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const section = sectionRef.current;
+    if (!section) return;
 
     const handleMouseMove = (e) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
 
-      const height = window.innerHeight;
-      const width = window.innerWidth;
+      const height = window.innerHeight || 800;
+      const width = window.innerWidth || 1200;
       rotateX.set((e.clientY / height) * 30 - 15);
       rotateY.set((e.clientX / width) * 30 - 15);
     };
 
-    section?.addEventListener("mousemove", handleMouseMove);
-    return () => section?.removeEventListener("mousemove", handleMouseMove);
+    section.addEventListener("mousemove", handleMouseMove);
+    return () => section.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY, rotateX, rotateY]);
 
   function handleInvestClick(plan) {
-    if (user) router.push("/profile?invest=true");
-    else openAuthModal && openAuthModal();
+    if (user) {
+      router.push("/profile?invest=true");
+    } else {
+      openAuthModal && openAuthModal();
+    }
   }
 
   return (
@@ -52,37 +108,51 @@ export default function InvestmentPlans() {
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
+      aria-labelledby="plans-heading"
     >
-      <div className="neon-cursor"></div>
+      <div className="neon-cursor" aria-hidden />
       <div className="container">
         <header className="section-head">
-          <h2 className="title">🚀 Investment Plans</h2>
+          <h2 id="plans-heading" className="title">
+            {tSafe("plans.title", "🚀 Investment Plans")}
+          </h2>
           <p className="subtitle">
-            Choose from our futuristic high-yield investment tiers — built for the new era of finance.
+            {tSafe(
+              "plans.subtitle",
+              "Choose from our futuristic high-yield investment tiers — built for the new era of finance."
+            )}
           </p>
         </header>
 
-        <div className="grid">
-          {plans.map((plan, idx) => (
+        <div className="grid" role="list">
+          {PLANS.map((plan, idx) => (
             <motion.article
               key={plan.id}
               className="card"
-              style={{ "--accent": plan.accent }}
+              style={{ ["--accent"]: plan.accent }}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.15, type: "spring", stiffness: 100 }}
+              transition={{ delay: idx * 0.12, type: "spring", stiffness: 100 }}
               whileHover={{ scale: 1.05 }}
+              role="listitem"
+              aria-labelledby={`${plan.id}-name`}
             >
-              <div className="glow"></div>
+              <div className="glow" aria-hidden />
               <div className="card-body">
-                <h3 className="plan-name">{plan.name}</h3>
-                <p className="range">{plan.range}</p>
-                <p className="duration">{plan.duration}</p>
-                <p className="yield">{plan.yield}</p>
+                <h3 id={`${plan.id}-name`} className="plan-name">
+                  {tSafe(plan.nameKey, plan.nameFallback)}
+                </h3>
+                <p className="range">{tSafe(plan.rangeKey, plan.rangeFallback)}</p>
+                <p className="duration">{tSafe(plan.durationKey, plan.durationFallback)}</p>
+                <p className="yield">{tSafe(plan.yieldKey, plan.yieldFallback)}</p>
               </div>
-              <button className="cta" onClick={() => handleInvestClick(plan)}>
-                Invest Now <span className="arrow">→</span>
+              <button
+                className="cta"
+                onClick={() => handleInvestClick(plan)}
+                aria-label={tSafe("plans.invest_now", "Invest Now")}
+              >
+                {tSafe("plans.invest_now", "Invest Now")} <span className="arrow">→</span>
               </button>
             </motion.article>
           ))}
@@ -99,8 +169,6 @@ export default function InvestmentPlans() {
           perspective: 1000px;
           transform-style: preserve-3d;
         }
-
-  
 
         .container {
           position: relative;
@@ -121,12 +189,16 @@ export default function InvestmentPlans() {
         }
 
         @keyframes glowPulse {
-          0%, 100% { text-shadow: 0 0 15px #00e0ff66; }
-          50% { text-shadow: 0 0 30px #ff00ffaa; }
+          0%, 100% {
+            text-shadow: 0 0 15px #00e0ff66;
+          }
+          50% {
+            text-shadow: 0 0 30px #ff00ffaa;
+          }
         }
 
         .subtitle {
-          color: #b3b3b3;
+          color: #0f0707f5;
           margin-bottom: 50px;
           font-size: clamp(0.9rem, 2.5vw, 1.1rem);
           line-height: 1.6;
@@ -180,7 +252,9 @@ export default function InvestmentPlans() {
           letter-spacing: 1px;
         }
 
-        .range, .duration, .yield {
+        .range,
+        .duration,
+        .yield {
           font-size: clamp(0.9rem, 2.5vw, 1rem);
           color: #220311ff;
           margin: 6px 0;

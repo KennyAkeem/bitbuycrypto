@@ -1,48 +1,48 @@
+
 import { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-const testimonials = [
-  {
-    review:
-      "Bitbuy made investing so easy! I doubled my returns in just a few months. Highly recommend.",
-    name: "Joe Iris",
-    role: "Investor",
-    img: "/images/customer-img-1.jpg",
-  },
-  {
-    review:
-      "The dashboard is super intuitive, and support is fantastic. My withdrawals are always fast!",
-    name: "Linda Chen",
-    role: "Trader",
-    img: "/images/customer-img-2.jpg",
-  },
-  {
-    review:
-      "The transparency of Bitbuy gives me peace of mind. I trust my funds are safe.",
-    name: "Alex Bush",
-    role: "Entrepreneur",
-    img: "/images/customer-img-3.jpg",
-  },
-  {
-    review:
-      "Bitbuy’s advice helped me diversify. The weekly reports are a gamechanger.",
-    name: "Marta John",
-    role: "Investor",
-    img: "/images/customer-img-2.jpg",
-  },
-  {
-    review:
-      "I love the clean design and how easy it is to track my growth.",
-    name: "Duke James",
-    role: "Investor",
-    img: "/images/customer-img-3.jpg",
-  },
-];
-
 export default function TestimonialCarousel() {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const sliderRef = useRef(null);
+
+  const testimonials = [
+    {
+      review: t("testimonial_1_review"),
+      name: t("testimonial_1_name"),
+      role: t("testimonial_1_role"),
+      img: "/images/customer-img-1.jpg",
+    },
+    {
+      review: t("testimonial_2_review"),
+      name: t("testimonial_2_name"),
+      role: t("testimonial_2_role"),
+      img: "/images/customer-img-2.jpg",
+    },
+    {
+      review: t("testimonial_3_review"),
+      name: t("testimonial_3_name"),
+      role: t("testimonial_3_role"),
+      img: "/images/customer-img-3.jpg",
+    },
+    {
+      review: t("testimonial_4_review"),
+      name: t("testimonial_4_name"),
+      role: t("testimonial_4_role"),
+      img: "/images/customer-img-2.jpg",
+    },
+    {
+      review: t("testimonial_5_review"),
+      name: t("testimonial_5_name"),
+      role: t("testimonial_5_role"),
+      img: "/images/customer-img-3.jpg",
+    },
+  ];
+
   const [settings, setSettings] = useState({
     dots: true,
     infinite: true,
@@ -55,105 +55,63 @@ export default function TestimonialCarousel() {
     adaptiveHeight: true,
     pauseOnHover: true,
     responsive: [
-      {
-        breakpoint: 1100,
-        settings: { slidesToShow: 2, arrows: true },
-      },
-      {
-        breakpoint: 700,
-        settings: { slidesToShow: 1, arrows: false, centerMode: false },
-      },
+      { breakpoint: 1100, settings: { slidesToShow: 2, arrows: true } },
+      { breakpoint: 700, settings: { slidesToShow: 1, arrows: false } },
     ],
   });
-  const sliderRef = useRef(null);
 
-  // Wait until window is available to prevent SSR mismatch and adjust settings based on real viewport
   useEffect(() => {
     if (typeof window === "undefined") return;
     setMounted(true);
 
-    // Set initial responsive behavior using actual viewport width (fixes some slick sizing issues)
     const applyResponsive = () => {
       const w = window.innerWidth;
       let newSettings = { ...settings };
 
-      if (w <= 700) {
-        newSettings = { ...newSettings, slidesToShow: 1, arrows: false };
-      } else if (w <= 1100) {
-        newSettings = { ...newSettings, slidesToShow: 2, arrows: true };
-      } else {
-        newSettings = { ...newSettings, slidesToShow: 3, arrows: true };
-      }
-
-      // replace responsive breakpoints too to ensure consistency
-      newSettings.responsive = [
-        { breakpoint: 1100, settings: { slidesToShow: 2, arrows: true } },
-        { breakpoint: 700, settings: { slidesToShow: 1, arrows: false, centerMode: false } },
-      ];
+      if (w <= 700) newSettings = { ...newSettings, slidesToShow: 1, arrows: false };
+      else if (w <= 1100) newSettings = { ...newSettings, slidesToShow: 2, arrows: true };
+      else newSettings = { ...newSettings, slidesToShow: 3, arrows: true };
 
       setSettings(newSettings);
 
-      // trigger slick to recalc sizes
-      if (sliderRef.current && sliderRef.current.innerSlider) {
+      if (sliderRef.current?.innerSlider) {
         try {
           sliderRef.current.innerSlider.onWindowResized();
-        } catch (err) {
-          // ignore
-        }
+        } catch (_) {}
       }
     };
 
     applyResponsive();
-
-    const onResize = () => {
-      // throttle with requestAnimationFrame
-      requestAnimationFrame(applyResponsive);
-    };
-
-    window.addEventListener("resize", onResize);
-
-    // small delay to ensure slick measures correctly after mount
-    const t = setTimeout(() => {
-      if (sliderRef.current && sliderRef.current.innerSlider) {
-        try {
-          sliderRef.current.innerSlider.onWindowResized();
-        } catch (err) {}
-      }
-    }, 450);
-
-    return () => {
-      window.removeEventListener("resize", onResize);
-      clearTimeout(t);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener("resize", () => requestAnimationFrame(applyResponsive));
+    return () => window.removeEventListener("resize", () => requestAnimationFrame(applyResponsive));
   }, []);
 
   if (!mounted) return null;
 
   return (
     <div className="testimonial-container">
-      <h2 className="section-title text-center mb-5">What Our Clients Say</h2>
+      <h2 className="section-title text-center mb-5">{t("testimonials_title")}</h2>
 
       <Slider ref={sliderRef} {...settings} className="testimonial-slick">
-        {testimonials.map((t, idx) => (
+        {testimonials.map((tst, idx) => (
           <div key={idx} className="slick-slide-item">
             <div className="testimonial-slide" tabIndex={0}>
               <i className="fas fa-quote-left quote-icon" aria-hidden="true"></i>
-              <p className="testimonial-text">“{t.review}”</p>
-
+              <p className="testimonial-text">“{tst.review}”</p>
               <div className="testimonial-footer">
                 <div className="testimonial-info">
-                  <h5 className="testimonial-name">{t.name}</h5>
-                  <p className="testimonial-role">{t.role}</p>
+                  <h5 className="testimonial-name">{tst.name}</h5>
+                  <p className="testimonial-role">{tst.role}</p>
                 </div>
                 <div className="testimonial-avatar">
-                  <img src={t.img} alt={t.name} />
+                  <img src={tst.img} alt={tst.name} />
                 </div>
               </div>
             </div>
           </div>
         ))}
       </Slider>
+    
 
       <style jsx>{`
         .testimonial-container {

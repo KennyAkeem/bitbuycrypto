@@ -1,0 +1,336 @@
+{
+  "title": "My App",
+  "welcome": "Welcome to my site!",
+  "change_language": "Change language",
+  "language_en": "English",
+  "language_fr": "French",
+  "language_es": "Spanish",
+  "language_de": "German",
+  "hello_name": "Hello, {{name}}!",
+  "brand": "Bitbuy",
+  "nav_services": "Services",
+  "nav_investment_plans": "Investment Plans",
+  "nav_testimony": "Testimonials",
+  "nav_faq": "FAQ",
+  "admin": "Admin",
+  "dashboard": "Dashboard",
+  "login": "Login",
+  "logout": "Logout",
+
+  "auth": {
+    "create_account": "Create Account",
+    "welcome_back": "Welcome back",
+    "join_us": "Join us — secure and fast.",
+    "display_name": "Display Name",
+    "display_name_required": "Display name is required.",
+    "email": "Email",
+    "invalid_email": "Please enter a valid email address.",
+    "password": "Password",
+    "show_password": "Show password",
+    "min_chars": "At least 6 characters",
+    "uppercase": "At least one uppercase letter",
+    "lowercase": "At least one lowercase letter",
+    "number": "At least one number",
+    "chars_left": "Characters left",
+    "confirm_password": "Confirm password",
+    "register": "Register",
+    "already_have_account": "Already have an account?",
+    "enter_password": "Enter your password.",
+    "password_requirements": "Password must be at least 6 chars, include upper & lower case letters and a number.",
+    "passwords_mismatch": "Passwords do not match.",
+    "account_created": "Account created!",
+    "registration_failed": "Registration failed!",
+    "forgot_password": "Forgot password?",
+    "send_reset_link": "Send Reset Link",
+    "reset_sent": "Reset link sent! Check your email.",
+    "reset_failed": "Failed to send reset link.",
+    "back_to_login": "Back to Login",
+    "login_failed": "Login failed! Check your credentials.",
+    "login_successful": "Login successful!",
+    "close": "Close authentication dialog",
+    "sign_in_to_continue": "Sign in to continue."
+  },
+
+  "buy": {
+    "title": "Buy Crypto",
+    "login_prompt": "Please login to buy (demo)",
+    "asset_label": "Asset",
+    "amount_label": "Amount (USD)",
+    "amount_placeholder": "e.g., 50",
+    "price_prefix": "Price",
+    "buy_button": "Buy {{asset}}",
+    "investment_options_title": "Investment Options",
+    "quick_amount": "${{amount}}",
+    "enter_positive_amount": "Enter a positive USD amount",
+    "bought_msg": "Bought {{amount}} {{asset}} for ${{amt}} (demo)"
+  },
+
+  "asset": {
+    "BTC": "Bitcoin",
+    "ETH": "Ethereum",
+    "SOL": "Solana",
+    "USDT": "Tether (USDT)"
+  },
+
+  "deposit": {
+    "loading": "Loading deposit addresses…",
+    "failed": "Failed to load addresses",
+    "title": "Deposit Addresses",
+    "none": "No deposit addresses found.",
+    "not_set": "Not set",
+    "last_updated": "Last updated"
+  },
+
+  "faq": {
+    "eyebrow": "FAQs",
+    "title": "Get the answers to common questions",
+    "lead": "Quickly find help or read the most common questions about Bitbuy.",
+    "search_label": "Search FAQs",
+    "search_placeholder": "Search by keyword (deposits, withdraw, plans...)",
+    "aria_search": "Search frequently asked questions",
+    "clear": "Clear",
+    "collapse_all": "Collapse all",
+    "expand_first": "Expand first",
+    "no_results": "No results found. Try a different keyword.",
+    "what_is_bitbuy": {
+      "q": "What is Bitbuy?",
+      "a": "Bitbuy is a trusted investment platform that allows users to invest securely in cryptocurrencies such as Bitcoin, Ethereum, and USDT. We focus on making digital investing simple, transparent, and accessible while applying disciplined risk-management and data-driven strategies."
+    },
+    "industries": {
+      "q": "What industries do you specialize in?",
+      "a": "We specialize in cryptocurrency and digital assets. Our primary markets include Bitcoin (BTC), Ethereum (ETH), USDT (BEP20 / TRC20), and related DeFi opportunities. We combine automated strategies with human oversight to capture market opportunities responsibly."
+    },
+    "guarantee_growth": {
+      "q": "Can you guarantee growth?",
+      "a": "No legitimate investment can promise guaranteed returns. Bitbuy commits to transparency and professional risk management — we aim to maximize returns while minimizing avoidable risk through analytics and adaptive strategies. Past performance is not a guarantee of future results."
+    },
+    "plans_special": {
+      "q": "What makes your investment plans special?",
+      "a": "Our plans balance clear durations, transparent yields, and automated execution. We tailor plans for different investor goals (short-term, growth, capital preservation) and continuously monitor performance to optimize outcomes."
+    },
+    "deposits_withdrawals": {
+      "q": "How do deposits and withdrawals work?",
+      "a": "Wallets are generated and visible only to Authenticated Users. Deposits are recorded as pending until the system confirms. Withdrawals are requested from your dashboard and require admin approval for processing to ensure security."
+    },
+    "user_security": {
+      "q": "How is user security handled?",
+      "a": "We enforce secure authentication, (RLS) in the database, encrypted communications, and operational controls for admin actions. Never share your service keys and use strong passwords / 2FA when available."
+    }
+  },
+
+  "hero": {
+    "aria_label": "Hero carousel",
+    "slide1": {
+      "caption": "The Most Prestigious Investments Company",
+      "description": "Invest with confidence in BTC, ETH, and USDT — fast, secure, and reliable.",
+      "cta": "Apply Now"
+    },
+    "slide2": {
+      "caption": "Real-Time Crypto Insights",
+      "description": "Stay ahead with live crypto price tracking and instant transaction updates.",
+      "cta": "Start Investing"
+    },
+    "slide3": {
+      "caption": "Admin-Approved Transactions",
+      "description": "Every investment is reviewed manually for your safety and transparency.",
+      "cta": "Read More"
+    }
+  },
+
+  "footer": {
+    "aria_label": "Site footer",
+    "top_sponsors": "Top Sponsors",
+    "explore": "Explore",
+    "contact_info": "Contact Info",
+    "address": "540 Street, New York, USA",
+    "email": "Bitbuy.invest@gmail.com",
+    "phone": "+1 5667 8756 467",
+    "popular_posts": "Popular Posts",
+    "post": {
+      "investment": {
+        "title": "Investment",
+        "link": "Revisiting Your Investment & Distribution Goals"
+      },
+      "business": {
+        "title": "Business",
+        "link": "Dimensional Fund Advisors Interview"
+      }
+    },
+    "bottom": "© 2025 Bitbuy Invest. All rights reserved. | Designed by HRH",
+    "social": {
+      "facebook-f": "Facebook",
+      "twitter": "Twitter",
+      "instagram": "Instagram",
+      "linkedin-in": "LinkedIn"
+    }
+  },
+
+  "sponsor": {
+    "binance": "Binance",
+    "ripple": "Ripple",
+    "coinbase": "Coinbase",
+    "bitcoin": "Bitcoin"
+  },
+
+  "plans": {
+    "title": "🚀 Investment Plans",
+    "subtitle": "Choose from our futuristic high-yield investment tiers — built for the new era of finance.",
+    "invest_now": "Invest Now",
+    "starter": {
+      "name": "Starter Plan",
+      "range": "$100 - $500",
+      "duration": "24 hours",
+      "yield": "5% daily"
+    },
+    "growth": {
+      "name": "Growth Plan",
+      "range": "$500 - $1000",
+      "duration": "24 hours",
+      "yield": "8% daily"
+    },
+    "premium": {
+      "name": "Premium Plan",
+      "range": "$1000 - $10,000",
+      "duration": "48 hours",
+      "yield": "15% daily"
+    },
+    "elite": {
+      "name": "Elite Plan",
+      "range": "$10,000 - unlimited",
+      "duration": "72 hours",
+      "yield": "30% daily"
+    }
+  },
+
+  "services": {
+    "eyebrow": "Our Services",
+    "heading": "Explore Sci-Fi Investing",
+    "cta": "Bitbuy",
+    "business_strategy": {
+      "title": "Business Strategy Investments",
+      "description": "Unlock the full potential of your assets with our futuristic investment strategies. We blend AI with deep market insights."
+    },
+    "consultancy": {
+      "title": "Consultancy & Advice",
+      "description": "Our expert consultants provide tailored advice, helping you navigate the complex world of modern finance and tech."
+    },
+    "investments_planning": {
+      "title": "Investments Planning",
+      "description": "Plan your investments with confidence—smart analytics, risk assessment, and adaptive growth models at your fingertips."
+    },
+    "private_client": {
+      "title": "Private Client Investment",
+      "description": "Exclusive private client services for high-net-worth individuals. Secure, discrete, and designed for exponential growth."
+    }
+  },
+
+  "sim": {
+    "deposit": "Someone from {{country}} just deposited {{amount}} {{coin}}",
+    "withdraw": "Someone in {{country}} just withdrew {{amount}} {{coin}}",
+    "example": "Someone from Japan just deposited 0.25 BTC"
+  },
+
+  "profile": {
+    "loading": "Loading...",
+    "not_authorized": "Not authorized",
+    "profile_alt": "profile",
+    "email_label": "Email",
+    "edit_profile_button": "Edit Profile",
+    "quick_guide_title": "Quick Guide",
+    "quick_guide_badge": "Read Carefully",
+    "how_to_get_started_heading": "How to get started:",
+    "step_1_prefix": "Click",
+    "invest_now": "\"Invest Now\"",
+    "step_2": "Select your preferred cryptocurrency and network (if applicable).",
+    "step_3": "Copy the deposit address.",
+    "step_4": "Send cryptocurrency to the provided (copied) address.",
+    "step_5": "Confirm your payment.",
+    "step_6": "Wait for admin confirmation.",
+    "step_7": "Your investment starts yielding interests immediately your deposit is confirmed.",
+    "step_8": "Monitor your investment growth in the dashboard.",
+    "step_9": "Withdraw your earnings anytime!",
+    "invest_now_cta": "Invest Now",
+    "edit_profile_modal_title": "Edit Profile",
+    "close": "Close",
+    "change_picture": "Change Picture",
+    "remove_picture": "Remove",
+    "display_name_label": "Display Name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete_account": "Delete Account",
+    "your_investments": "Your Investments",
+    "add_funds": "Add Funds",
+    "col_coin": "Coin",
+    "col_amount": "Amount",
+    "col_status": "Status",
+    "col_time": "Time",
+    "no_investments": "No investments yet.",
+    "withdraw_funds": "Withdraw Funds",
+    "transaction_history": "Transaction History",
+    "col_type": "Type",
+    "badge_erc20": "ERC20",
+    "new_investment": "New Investment",
+    "select_coin": "Select Coin",
+    "select_usdt_network": "Select USDT Network",
+    "network_label": "Network!",
+    "deposit_address": "Deposit Address",
+    "copy": "Copy",
+    "amount_label": "Amount",
+    "pay_now": "Pay Now",
+    "withdrawal": "Withdrawal",
+    "withdraw_invalid_amount": "Enter a valid amount!",
+    "withdraw_over_balance": "Cannot withdraw more than your balance!",
+    "withdraw_address_required": "Wallet address required!",
+    "withdraw_fail": "Failed to record withdrawal!",
+    "withdraw_request_msg": "Withdrawal request for {{amount}} {{coin}} submitted. Waiting admin approval.",
+    "withdraw_nothing": "Nothing to withdraw yet. Invest now to start earning!",
+    "select_network_placeholder": "Select Network",
+    "withdrawal_amount": "Withdrawal Amount",
+    "wallet_address": "Wallet Address",
+    "wallet_placeholder": "Enter your wallet address",
+    "withdraw_button": "Withdraw",
+    "address_copied": "Address copied!",
+    "no_address": "No address to copy!",
+    "invalid_amount": "Enter a valid amount!",
+    "deposit_fail": "Failed to record investment!",
+    "deposit_success": "Deposit successful!",
+    "display_name_required": "Display name required!",
+    "profile_updated": "Profile updated!",
+    "pic_too_large": "Profile picture must be less than 200KB.",
+    "confirm_delete_account": "Are you sure you want to delete your account? This cannot be undone.",
+    "account_deleted": "Account deleted!",
+    "share_title": "Join me on Bitbuy!",
+    "share_text": "Sign up and earn a bonus with my referral link."
+  },
+
+  "verify": {
+    "checking": "Checking verification status...",
+    "verified_msg": "Email verified! Redirecting to your dashboard...",
+    "title": "Check your email 📩",
+    "instructions": "We sent a confirmation link to your email. Please verify your account to access your dashboard.",
+    "auto_update": "This page will automatically update once your email is verified."
+  }
+,
+  "testimonials_title": "What Our Clients Say",
+
+  "testimonial_1_review": "Bitbuy made investing so easy! I doubled my returns in just a few months. Highly recommend.",
+  "testimonial_1_name": "Joe Iris",
+  "testimonial_1_role": "Investor",
+
+  "testimonial_2_review": "The dashboard is super intuitive, and support is fantastic. My withdrawals are always fast!",
+  "testimonial_2_name": "Linda Chen",
+  "testimonial_2_role": "Trader",
+
+  "testimonial_3_review": "The transparency of Bitbuy gives me peace of mind. I trust my funds are safe.",
+  "testimonial_3_name": "Alex Bush",
+  "testimonial_3_role": "Entrepreneur",
+
+  "testimonial_4_review": "Bitbuy advice helped me diversify. The weekly reports are a gamechanger.",
+  "testimonial_4_name": "Marta John",
+  "testimonial_4_role": "Investor",
+
+  "testimonial_5_review": "I love the clean design and how easy it is to track my growth.",
+  "testimonial_5_name": "Duke James",
+  "testimonial_5_role": "Investor"
+}
+
