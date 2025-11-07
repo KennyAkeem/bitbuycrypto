@@ -65,9 +65,7 @@ export function UserProvider({ children }) {
     throw new Error(message);
   }
 
-  // ✅ Register new user (using Supabase Auth trigger for profiles)
-  // This now sets emailRedirectTo so verification emails send users to /verify-email.
-  // It also only updates local user state if Supabase returned a session (i.e., email confirmation is not required).
+  
   async function register({ name, email, password }) {
     if (!email || !password || !name) throwError("All fields are required.");
 
@@ -115,8 +113,7 @@ export function UserProvider({ children }) {
       return composedUser;
     }
 
-    // Otherwise, do not set authenticated user in context (email confirmation is required).
-    // Return a minimal object so callers can detect that verification is needed.
+    
     return { ...userObj, needsConfirmation: true };
   }
 

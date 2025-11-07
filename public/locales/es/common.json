@@ -295,6 +295,20 @@
     "wallet_address": "Dirección de la billetera",
     "wallet_placeholder": "Ingrese su dirección de billetera",
     "withdraw_button": "Retirar",
+     "total_assets_title": "Activos totales",
+    "total_assets_sub": "Resumen de sus tenencias actuales",
+    "calculating": "Calculando...",
+    "prices_unavailable": "Precios no disponibles",
+    "native_balance_display": "Mostrando saldos en unidades de cripto",
+    "total_value_usd": "Valor total (USD)",
+    "balance_label": "Saldo",
+    "price_label": "Precio",
+    "price_unavailable_short": "Sin precio",
+    "refreshing": "Actualizando tenencias...",
+    "refresh_holdings": "Actualizar",
+    "refresh_failed": "Error al actualizar las tenencias.",
+    "prices_fetch_error": "No se pueden obtener los datos de precios.",
+  
     "address_copied": "¡Dirección copiada!",
     "no_address": "¡No hay dirección para copiar!",
     "invalid_amount": "Ingrese una cantidad válida!",
@@ -341,3 +355,6 @@
   "testimonial_5_name": "Duke James",
   "testimonial_5_role": "Inversor"
 }
+
+
+   

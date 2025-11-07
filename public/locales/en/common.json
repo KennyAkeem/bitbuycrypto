@@ -295,6 +295,20 @@
     "deposit_fail": "Failed to record investment!",
     "deposit_success": "Deposit successful!",
     "display_name_required": "Display name required!",
+     "total_assets_title": "Total Assets",
+    "total_assets_sub": "Summary of your current holdings",
+    "calculating": "Calculating...",
+    "prices_unavailable": "Prices unavailable",
+    "native_balance_display": "Showing balances in coin units",
+    "total_value_usd": "Total value (USD)",
+    "balance_label": "Balance",
+    "price_label": "Price",
+    "price_unavailable_short": "No price",
+    "refreshing": "Refreshing holdings...",
+    "refresh_holdings": "Refresh",
+    "refresh_failed": "Failed to refresh holdings.",
+    "prices_fetch_error": "Unable to fetch price data.",
+  
     "profile_updated": "Profile updated!",
     "pic_too_large": "Profile picture must be less than 200KB.",
     "confirm_delete_account": "Are you sure you want to delete your account? This cannot be undone.",
@@ -334,3 +348,5 @@
   "testimonial_5_role": "Investor"
 }
 
+
+   

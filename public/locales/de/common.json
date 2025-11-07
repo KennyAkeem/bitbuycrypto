@@ -308,11 +308,25 @@
     "deposit_success": "Einzahlung erfolgreich!",
     "display_name_required": "Anzeigename erforderlich!",
     "profile_updated": "Profil aktualisiert!",
-    "pic_too_large": "Profilbild muss kleiner als 200KB sein.",
+     "total_assets_title": "Gesamtvermögen",
+    "total_assets_sub": "Übersicht Ihrer aktuellen Bestände",
+    "calculating": "Berechne...",
+    "prices_unavailable": "Preise nicht verfügbar",
+    "native_balance_display": "Zeigt Salden in Coin-Einheiten an",
+    "total_value_usd": "Gesamtwert (USD)",
+    "balance_label": "Saldo",
+    "price_label": "Preis",
+    "price_unavailable_short": "Kein Preis",
+    "refreshing": "Bestände werden aktualisiert...",
+    "refresh_holdings": "Aktualisieren",
+    "refresh_failed": "Aktualisierung der Bestände fehlgeschlagen.",
+    "prices_fetch_error": "Preisdaten konnten nicht abgerufen werden.",
+ "pic_too_large": "Profilbild muss kleiner als 200KB sein.",
     "confirm_delete_account": "Möchten Sie Ihr Konto wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
     "account_deleted": "Konto gelöscht!",
     "share_title": "Begleiten Sie mich bei Bitbuy!",
     "share_text": "Melden Sie sich an und erhalten Sie einen Bonus mit meinem Empfehlungslink."
+    
   }
 ,
 
@@ -347,3 +361,5 @@
   "testimonial_5_name": "Duke James",
   "testimonial_5_role": "Investor"
 }
+
+   

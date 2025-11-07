@@ -310,7 +310,23 @@
     "confirm_delete_account": "Êtes-vous sûr de vouloir supprimer votre compte ? Cela ne peut pas être annulé.",
     "account_deleted": "Compte supprimé !",
     "share_title": "Rejoignez-moi sur Bitbuy !",
-    "share_text": "Inscrivez-vous et gagnez un bonus avec mon lien de parrainage."
+    "share_text": "Inscrivez-vous et gagnez un bonus avec mon lien de parrainage.",
+    "total_assets_title": "Actifs totaux",
+    "total_assets_sub": "Résumé de vos avoirs actuels",
+    "calculating": "Calcul en cours...",
+    "prices_unavailable": "Prix indisponibles",
+    "native_balance_display": "Affichage des soldes en unités de pièces",
+    "total_value_usd": "Valeur totale (USD)",
+    "balance_label": "Solde",
+    "price_label": "Prix",
+    "price_unavailable_short": "Pas de prix",
+    "refreshing": "Actualisation des avoirs...",
+    "refresh_holdings": "Actualiser",
+    "refresh_failed": "Échec de l'actualisation des avoirs.",
+    "prices_fetch_error": "Impossible de récupérer les données de prix."
+
+
+
   }
 ,
 
