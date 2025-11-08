@@ -7,12 +7,29 @@ import SimulatedAlert from "../components/SimulatedAlert";
 import InvestmentGrowthChart from "../components/InvestmentGrowthChart";
 import { useTranslation } from "react-i18next";
 
-function getCoinBalances(investments, withdrawals) {
+function getCoinBalancesAll(investments, withdrawals) {
+  // Includes all deposits (pending + success) and subtracts successful withdrawals
   const balances = {};
-  investments.forEach(inv => {
+  (investments || []).forEach(inv => {
     balances[inv.coin] = (balances[inv.coin] || 0) + Number(inv.amount);
   });
-  withdrawals.forEach(wd => {
+  (withdrawals || []).forEach(wd => {
+    if (wd.status === "success") {
+      balances[wd.coin] = (balances[wd.coin] || 0) - Number(wd.amount);
+    }
+  });
+  return balances;
+}
+
+function getCoinBalancesConfirmed(investments, withdrawals) {
+  // Only counts approved (success) deposits and subtracts successful withdrawals
+  const balances = {};
+  (investments || []).forEach(inv => {
+    if (inv.status === "success") {
+      balances[inv.coin] = (balances[inv.coin] || 0) + Number(inv.amount);
+    }
+  });
+  (withdrawals || []).forEach(wd => {
     if (wd.status === "success") {
       balances[wd.coin] = (balances[wd.coin] || 0) - Number(wd.amount);
     }
@@ -53,7 +70,8 @@ export default function Profile({ showToast }) {
 
   // holdings & pricing state
   const [coinPrices, setCoinPrices] = useState({}); // e.g. { btc: 35000, eth: 1800, usdt: 1 }
-  const [totalUSD, setTotalUSD] = useState(null);
+  const [totalUSDIncludingPending, setTotalUSDIncludingPending] = useState(null);
+  const [totalUSDConfirmed, setTotalUSDConfirmed] = useState(null);
   const [holdingsLoading, setHoldingsLoading] = useState(false);
   const [holdingsError, setHoldingsError] = useState("");
 
@@ -69,7 +87,6 @@ export default function Profile({ showToast }) {
     setMounted(true);
   }, []);
 
-  // initial fetches & re-fetch when relevant state changes
   useEffect(() => {
     if (user === undefined) return;
     if (!user) {
@@ -139,23 +156,23 @@ export default function Profile({ showToast }) {
     setPicPreview(user?.profilePic || "");
   }, [user, router, modalOpen, withdrawModalOpen]);
 
-  // Fetch live prices from CoinGecko and compute holdings
-  async function fetchPricesAndComputeTotal(balances) {
+  // Fetch live prices from CoinGecko and compute holdings for both including-pending and confirmed-only
+  async function fetchPricesAndComputeTotals(balancesIncludingPending, balancesConfirmed) {
     setHoldingsLoading(true);
     setHoldingsError("");
     try {
+      // Use union of coins for price lookup
+      const coinsUnion = Array.from(new Set([
+        ...Object.keys(balancesIncludingPending || {}),
+        ...Object.keys(balancesConfirmed || {})
+      ])).filter(Boolean);
+
       const coinToId = { btc: "bitcoin", eth: "ethereum", usdt: "tether" };
-      const coins = Object.keys(balances).filter(c => Number(balances[c]) !== 0);
-      if (coins.length === 0) {
-        setCoinPrices({});
-        setTotalUSD(0);
-        setHoldingsLoading(false);
-        return;
-      }
-      const ids = coins.map(c => coinToId[c]).filter(Boolean).join(",");
+      const ids = coinsUnion.map(c => coinToId[c]).filter(Boolean).join(",");
       if (!ids) {
         setCoinPrices({});
-        setTotalUSD(null);
+        setTotalUSDIncludingPending(null);
+        setTotalUSDConfirmed(null);
         setHoldingsError(tSafe("profile.prices_fetch_error", "Unable to fetch price data."));
         setHoldingsLoading(false);
         return;
@@ -164,28 +181,37 @@ export default function Profile({ showToast }) {
       const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=usd`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`CoinGecko responded ${res.status}`);
-      const data = await res.json(); // e.g. { bitcoin: { usd: 35000 }, ethereum: { usd: 1800 } }
+      const data = await res.json();
 
       const priceMap = {};
-      coins.forEach(c => {
+      coinsUnion.forEach(c => {
         const id = coinToId[c];
         const usd = data?.[id]?.usd;
         priceMap[c] = usd ? Number(usd) : null;
       });
-
       setCoinPrices(priceMap);
 
-      let total = 0;
-      coins.forEach(c => {
-        const amt = Number(balances[c]) || 0;
+      // compute totals
+      let totalIncluding = 0;
+      Object.keys(balancesIncludingPending || {}).forEach(c => {
+        const amt = Number(balancesIncludingPending[c]) || 0;
         const price = priceMap[c] || 0;
-        total += amt * price;
+        totalIncluding += amt * price;
       });
-      setTotalUSD(total);
+      setTotalUSDIncludingPending(totalIncluding);
+
+      let totalConfirmed = 0;
+      Object.keys(balancesConfirmed || {}).forEach(c => {
+        const amt = Number(balancesConfirmed[c]) || 0;
+        const price = priceMap[c] || 0;
+        totalConfirmed += amt * price;
+      });
+      setTotalUSDConfirmed(totalConfirmed);
     } catch (err) {
       console.error("Failed to fetch prices:", err);
       setCoinPrices({});
-      setTotalUSD(null);
+      setTotalUSDIncludingPending(null);
+      setTotalUSDConfirmed(null);
       setHoldingsError(tSafe("profile.prices_fetch_error", "Unable to fetch price data."));
     } finally {
       setHoldingsLoading(false);
@@ -194,8 +220,9 @@ export default function Profile({ showToast }) {
 
   // Recompute holdings whenever investments or withdrawals change.
   useEffect(() => {
-    const balances = getCoinBalances(investments, withdrawals);
-    fetchPricesAndComputeTotal(balances);
+    const balancesIncludingPending = getCoinBalancesAll(investments, withdrawals);
+    const balancesConfirmed = getCoinBalancesConfirmed(investments, withdrawals);
+    fetchPricesAndComputeTotals(balancesIncludingPending, balancesConfirmed);
   }, [investments, withdrawals]);
 
   // Debug duplicate keys in development
@@ -246,7 +273,7 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Invest handler
+  // Invest handler (unchanged)
   async function handleInvest(e) {
     e.preventDefault();
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -283,17 +310,18 @@ export default function Profile({ showToast }) {
     setNetwork("");
   }
 
-  // Withdraw submit
+  // Withdraw submit: use confirmed balances for validation
   async function submitWithdraw(e) {
     e.preventDefault();
-    const bal = balances[withdrawCoin];
+    const confirmedBalances = getCoinBalancesConfirmed(investments, withdrawals);
+    const bal = confirmedBalances[withdrawCoin] || 0;
     const amtNum = Number(withdrawAmount);
     if (!amtNum || amtNum <= 0) {
       setWithdrawErr(tSafe("profile.withdraw_invalid_amount", "Enter a valid amount!"));
       return;
     }
     if (amtNum > bal) {
-      setWithdrawErr(tSafe("profile.withdraw_over_balance", "Cannot withdraw more than your balance!"));
+      setWithdrawErr(tSafe("profile.withdraw_over_balance", "Cannot withdraw more than your available balance!"));
       return;
     }
     if (!withdrawAddress.trim()) {
@@ -336,9 +364,10 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Open Withdraw modal with a default coin (first coin with funds)
+  // Open Withdraw modal with default coin chosen from confirmed balances
   function handleWithdraw() {
-    const coinsWithFunds = Object.entries(balances).filter(([c, amt]) => amt > 0);
+    const confirmedBalances = getCoinBalancesConfirmed(investments, withdrawals);
+    const coinsWithFunds = Object.entries(confirmedBalances).filter(([c, amt]) => amt > 0);
     if (coinsWithFunds.length === 0) {
       setWithdrawMsg(tSafe("profile.withdraw_nothing", "Nothing to withdraw yet. Invest now to start earning!"));
       setWithdrawCoin("btc");
@@ -403,7 +432,8 @@ export default function Profile({ showToast }) {
   if (!user) return <div>{tSafe("profile.not_authorized", "Not authorized")}</div>;
 
   // compute balances for rendering
-  const balances = getCoinBalances(investments, withdrawals);
+  const balancesIncludingPending = getCoinBalancesAll(investments, withdrawals);
+  const balancesConfirmed = getCoinBalancesConfirmed(investments, withdrawals);
 
   // Find address for coin/network
   function getAddress(coin, network = null) {
@@ -434,8 +464,9 @@ export default function Profile({ showToast }) {
       ]);
       if (!invErr && Array.isArray(invData)) setInvestments(invData);
       if (!wdErr && Array.isArray(wdData)) setWithdrawals(wdData);
-      const newBalances = getCoinBalances(invData || investments, wdData || withdrawals);
-      await fetchPricesAndComputeTotal(newBalances);
+      const newBalancesIncludingPending = getCoinBalancesAll(invData || investments, wdData || withdrawals);
+      const newBalancesConfirmed = getCoinBalancesConfirmed(invData || investments, wdData || withdrawals);
+      await fetchPricesAndComputeTotals(newBalancesIncludingPending, newBalancesConfirmed);
       showToast && showToast("info", tSafe("profile.refreshing", "Refreshing holdings..."));
     } catch (err) {
       console.error("Refresh failed", err);
@@ -501,7 +532,9 @@ export default function Profile({ showToast }) {
         </div>
       </div>
 
-      {/* Total Assets / Holdings Section (responsive + translatable) */}
+      {/* Total Assets / Holdings Section (responsive + translatable)
+          - Shows Total (including pending deposits) and Confirmed (approved only).
+      */}
       <div className="row mb-4">
         <div className="col-12 col-md-10 mx-auto">
           <div className="card shadow-sm rounded-3 p-3">
@@ -514,15 +547,18 @@ export default function Profile({ showToast }) {
               <div className="text-end">
                 {holdingsLoading ? (
                   <div className="text-muted">{tSafe("profile.calculating", "Calculating...")}</div>
-                ) : totalUSD === null ? (
+                ) : totalUSDIncludingPending === null ? (
                   <div>
                     <div className="fw-bold">{tSafe("profile.prices_unavailable", "Prices unavailable")}</div>
                     <small className="text-muted">{tSafe("profile.native_balance_display", "Showing balances in coin units")}</small>
                   </div>
                 ) : (
                   <div>
-                    <div className="fs-5 fw-bold">${Number(totalUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                    <small className="text-muted">{tSafe("profile.total_value_usd", "Total value (USD)")}</small>
+                    <div className="fs-5 fw-bold">${Number(totalUSDIncludingPending).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <small className="text-muted">{tSafe("profile.total_including_pending", "Total (including pending deposits)")}</small>
+                    <div className="mt-1 small text-muted">
+                      <strong>{tSafe("profile.confirmed_assets_title", "Confirmed:")}</strong> {totalUSDConfirmed !== null ? `$${Number(totalUSDConfirmed).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : tSafe("profile.prices_unavailable", "Prices unavailable")}
+                    </div>
                   </div>
                 )}
               </div>
@@ -530,7 +566,8 @@ export default function Profile({ showToast }) {
 
             <div className="row mt-3 gy-2">
               {displayCoins.map(c => {
-                const amt = Number(balances[c]) || 0;
+                const amtIncluding = Number(balancesIncludingPending[c]) || 0;
+                const amtConfirmed = Number(balancesConfirmed[c]) || 0;
                 const price = coinPrices[c] ?? null;
                 return (
                   <div key={c} className="col-12 col-sm-6 col-md-4">
@@ -549,7 +586,7 @@ export default function Profile({ showToast }) {
                           <div className="fw-bold text-uppercase">{c}</div>
                           <div className="text-end">
                             <div className="small text-muted">{tSafe("profile.balance_label", "Balance")}</div>
-                            <div className="fw-semibold">{amt}</div>
+                            <div className="fw-semibold">{amtIncluding} <small className="text-muted">({tSafe("profile.confirmed_short", "confirmed")}: {amtConfirmed})</small></div>
                           </div>
                         </div>
 
@@ -563,7 +600,7 @@ export default function Profile({ showToast }) {
                           </div>
                           <div>
                             {price !== null ? (
-                              <span>~${(amt * price).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                              <span>~${(amtIncluding * price).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             ) : null}
                           </div>
                         </div>
