@@ -7,22 +7,12 @@ import SimulatedAlert from "../components/SimulatedAlert";
 import InvestmentGrowthChart from "../components/InvestmentGrowthChart";
 import { useTranslation } from "react-i18next";
 
-function getCoinBalancesAll(investments, withdrawals) {
-  // Includes all deposits (pending + success) and subtracts successful withdrawals
-  const balances = {};
-  (investments || []).forEach(inv => {
-    balances[inv.coin] = (balances[inv.coin] || 0) + Number(inv.amount);
-  });
-  (withdrawals || []).forEach(wd => {
-    if (wd.status === "success") {
-      balances[wd.coin] = (balances[wd.coin] || 0) - Number(wd.amount);
-    }
-  });
-  return balances;
-}
-
-function getCoinBalancesConfirmed(investments, withdrawals) {
-  // Only counts approved (success) deposits and subtracts successful withdrawals
+/**
+ * Compute balances from investments and withdrawals.
+ * Only counts approved/successful investments (inv.status === "success")
+ * and subtracts successful withdrawals (wd.status === "success").
+ */
+function getConfirmedBalances(investments, withdrawals) {
   const balances = {};
   (investments || []).forEach(inv => {
     if (inv.status === "success") {
@@ -39,14 +29,13 @@ function getCoinBalancesConfirmed(investments, withdrawals) {
 
 export default function Profile({ showToast }) {
   const { t } = useTranslation();
-
   const { user, updateUser, logout } = useUser();
   const router = useRouter();
 
-  // core UI state
+  // UI state
   const [modalOpen, setModalOpen] = useState(false);
   const [coin, setCoin] = useState("btc");
-  const [network, setNetwork] = useState(""); // for usdt
+  const [network, setNetwork] = useState("");
   const [amount, setAmount] = useState("");
   const [addresses, setAddresses] = useState([]);
   const [investments, setInvestments] = useState([]);
@@ -57,28 +46,24 @@ export default function Profile({ showToast }) {
   const [withdrawMsg, setWithdrawMsg] = useState("");
   const [withdrawErr, setWithdrawErr] = useState("");
   const [withdrawAddress, setWithdrawAddress] = useState("");
-  const [withdrawNetwork, setWithdrawNetwork] = useState(""); // for usdt in withdraw
+  const [withdrawNetwork, setWithdrawNetwork] = useState("");
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(user?.name || "");
-  const [editPic, setEditPic] = useState(user?.profilePic || "");
   const [picPreview, setPicPreview] = useState(user?.profilePic || "");
   const fileInputRef = useRef(null);
   const [refCopied, setRefCopied] = useState(false);
 
-  // mounted used to avoid SSR/CSR i18n mismatches
+  // mounted -> avoid SSR/CSR i18n mismatch
   const [mounted, setMounted] = useState(false);
 
-  // holdings & pricing state
-  const [coinPrices, setCoinPrices] = useState({}); // e.g. { btc: 35000, eth: 1800, usdt: 1 }
-  const [totalUSDIncludingPending, setTotalUSDIncludingPending] = useState(null);
-  const [totalUSDConfirmed, setTotalUSDConfirmed] = useState(null);
+  // pricing & holdings (confirmed-only)
+  const [coinPrices, setCoinPrices] = useState({}); // { btc: 35000, ... }
+  const [totalUSD, setTotalUSD] = useState(null); // total using confirmed balances only
   const [holdingsLoading, setHoldingsLoading] = useState(false);
   const [holdingsError, setHoldingsError] = useState("");
 
-  // translation helper (hydration-safe)
   const tSafe = (key, fallback) => (mounted ? t(key, { defaultValue: fallback }) : fallback);
 
-  // referralLink (client only)
   const referralLink = typeof window !== "undefined"
     ? `${window.location.origin}/register?ref=${user?.referralCode || user?.id || user?.email}`
     : "";
@@ -99,25 +84,22 @@ export default function Profile({ showToast }) {
       router.replace("/profile", undefined, { shallow: true });
     }
 
-    // Fetch wallet addresses
+    // fetch addresses
     async function fetchAddresses() {
       try {
         const { data, error } = await supabase
           .from("wallet_addresses")
           .select("coin, network, address");
-        if (!error && Array.isArray(data)) {
-          setAddresses(data);
-        } else {
-          setAddresses([]);
-        }
+        if (!error && Array.isArray(data)) setAddresses(data);
+        else setAddresses([]);
       } catch (err) {
-        console.error("Failed to fetch addresses:", err);
+        console.error("fetchAddresses error:", err);
         setAddresses([]);
       }
     }
     fetchAddresses();
 
-    // Investments (your provided investments table)
+    // fetch investments (your investments table)
     async function fetchInvestments() {
       if (!user) return;
       try {
@@ -129,12 +111,12 @@ export default function Profile({ showToast }) {
           .order("created_at", { ascending: false });
         if (!error && data) setInvestments(data);
       } catch (err) {
-        console.error("Failed to fetch investments:", err);
+        console.error("fetchInvestments error:", err);
       }
     }
     fetchInvestments();
 
-    // Withdrawals
+    // fetch withdrawals
     async function fetchWithdrawals() {
       if (!user) return;
       try {
@@ -146,86 +128,73 @@ export default function Profile({ showToast }) {
           .order("created_at", { ascending: false });
         if (!error && data) setWithdrawals(data);
       } catch (err) {
-        console.error("Failed to fetch withdrawals:", err);
+        console.error("fetchWithdrawals error:", err);
       }
     }
     fetchWithdrawals();
 
     setEditName(user?.name || "");
-    setEditPic(user?.profilePic || "");
     setPicPreview(user?.profilePic || "");
   }, [user, router, modalOpen, withdrawModalOpen]);
 
-  // Fetch live prices from CoinGecko and compute holdings for both including-pending and confirmed-only
-  async function fetchPricesAndComputeTotals(balancesIncludingPending, balancesConfirmed) {
+  // Fetch prices using CoinGecko for confirmed balances only
+  async function fetchPricesForConfirmedBalances(balances) {
     setHoldingsLoading(true);
     setHoldingsError("");
     try {
-      // Use union of coins for price lookup
-      const coinsUnion = Array.from(new Set([
-        ...Object.keys(balancesIncludingPending || {}),
-        ...Object.keys(balancesConfirmed || {})
-      ])).filter(Boolean);
-
+      const coins = Object.keys(balances).filter(c => Number(balances[c]) !== 0);
+      if (coins.length === 0) {
+        setCoinPrices({});
+        setTotalUSD(0);
+        setHoldingsLoading(false);
+        return;
+      }
       const coinToId = { btc: "bitcoin", eth: "ethereum", usdt: "tether" };
-      const ids = coinsUnion.map(c => coinToId[c]).filter(Boolean).join(",");
+      const ids = coins.map(c => coinToId[c]).filter(Boolean).join(",");
       if (!ids) {
         setCoinPrices({});
-        setTotalUSDIncludingPending(null);
-        setTotalUSDConfirmed(null);
+        setTotalUSD(null);
         setHoldingsError(tSafe("profile.prices_fetch_error", "Unable to fetch price data."));
         setHoldingsLoading(false);
         return;
       }
-
       const url = `https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=usd`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`CoinGecko responded ${res.status}`);
       const data = await res.json();
 
       const priceMap = {};
-      coinsUnion.forEach(c => {
+      coins.forEach(c => {
         const id = coinToId[c];
         const usd = data?.[id]?.usd;
         priceMap[c] = usd ? Number(usd) : null;
       });
       setCoinPrices(priceMap);
 
-      // compute totals
-      let totalIncluding = 0;
-      Object.keys(balancesIncludingPending || {}).forEach(c => {
-        const amt = Number(balancesIncludingPending[c]) || 0;
+      let total = 0;
+      coins.forEach(c => {
+        const amt = Number(balances[c]) || 0;
         const price = priceMap[c] || 0;
-        totalIncluding += amt * price;
+        total += amt * price;
       });
-      setTotalUSDIncludingPending(totalIncluding);
-
-      let totalConfirmed = 0;
-      Object.keys(balancesConfirmed || {}).forEach(c => {
-        const amt = Number(balancesConfirmed[c]) || 0;
-        const price = priceMap[c] || 0;
-        totalConfirmed += amt * price;
-      });
-      setTotalUSDConfirmed(totalConfirmed);
+      setTotalUSD(total);
     } catch (err) {
-      console.error("Failed to fetch prices:", err);
+      console.error("fetchPricesForConfirmedBalances error:", err);
       setCoinPrices({});
-      setTotalUSDIncludingPending(null);
-      setTotalUSDConfirmed(null);
+      setTotalUSD(null);
       setHoldingsError(tSafe("profile.prices_fetch_error", "Unable to fetch price data."));
     } finally {
       setHoldingsLoading(false);
     }
   }
 
-  // Recompute holdings whenever investments or withdrawals change.
+  // Recompute confirmed balances and fetch prices whenever investments/withdrawals change
   useEffect(() => {
-    const balancesIncludingPending = getCoinBalancesAll(investments, withdrawals);
-    const balancesConfirmed = getCoinBalancesConfirmed(investments, withdrawals);
-    fetchPricesAndComputeTotals(balancesIncludingPending, balancesConfirmed);
+    const confirmedBalances = getConfirmedBalances(investments, withdrawals);
+    fetchPricesForConfirmedBalances(confirmedBalances);
   }, [investments, withdrawals]);
 
-  // Debug duplicate keys in development
+  // Debug duplicate keys (development)
   useEffect(() => {
     const invKeys = (investments || []).map(i => `inv-${String(i.id)}`);
     const dupInv = invKeys.filter((k, idx) => invKeys.indexOf(k) !== idx);
@@ -243,14 +212,13 @@ export default function Profile({ showToast }) {
     if (dupTx.length) console.warn("Duplicate transaction keys:", dupTx);
   }, [investments, withdrawals]);
 
-  // Referral copy/share
+  // Referral helpers
   function handleCopyReferral() {
     if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
     setRefCopied(true);
     setTimeout(() => setRefCopied(false), 1500);
   }
-
   function handleShareReferral() {
     if (navigator.share) {
       navigator.share({
@@ -273,7 +241,7 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Invest handler (unchanged)
+  // Invest (unchanged)
   async function handleInvest(e) {
     e.preventDefault();
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
@@ -310,10 +278,10 @@ export default function Profile({ showToast }) {
     setNetwork("");
   }
 
-  // Withdraw submit: use confirmed balances for validation
+  // Withdraw: validate against confirmed balances (users cannot withdraw pending funds)
   async function submitWithdraw(e) {
     e.preventDefault();
-    const confirmedBalances = getCoinBalancesConfirmed(investments, withdrawals);
+    const confirmedBalances = getConfirmedBalances(investments, withdrawals);
     const bal = confirmedBalances[withdrawCoin] || 0;
     const amtNum = Number(withdrawAmount);
     if (!amtNum || amtNum <= 0) {
@@ -364,9 +332,9 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Open Withdraw modal with default coin chosen from confirmed balances
+  // handleWithdraw chooses coin from confirmed balances
   function handleWithdraw() {
-    const confirmedBalances = getCoinBalancesConfirmed(investments, withdrawals);
+    const confirmedBalances = getConfirmedBalances(investments, withdrawals);
     const coinsWithFunds = Object.entries(confirmedBalances).filter(([c, amt]) => amt > 0);
     if (coinsWithFunds.length === 0) {
       setWithdrawMsg(tSafe("profile.withdraw_nothing", "Nothing to withdraw yet. Invest now to start earning!"));
@@ -385,7 +353,7 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Edit profile save
+  // Edit profile
   function handleEditProfile(e) {
     e.preventDefault();
     if (!editName.trim()) {
@@ -401,7 +369,6 @@ export default function Profile({ showToast }) {
     showToast && showToast("success", tSafe("profile.profile_updated", "Profile updated!"));
   }
 
-  // Picture handling
   function handlePicChange(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -416,7 +383,6 @@ export default function Profile({ showToast }) {
     reader.readAsDataURL(file);
   }
 
-  // Delete account (local logout only - implement backend deletion separately)
   function handleDeleteAccount() {
     const confirmMsg = tSafe("profile.confirm_delete_account", "Are you sure you want to delete your account? This cannot be undone.");
     if (window.confirm(confirmMsg)) {
@@ -426,16 +392,14 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // Ensure we wait for client mount to avoid SSR/CSR mismatch
+  // ensure mounted
   if (!mounted) return <div>{tSafe("profile.loading", "Loading...")}</div>;
   if (user === undefined) return <div>{tSafe("profile.loading", "Loading...")}</div>;
   if (!user) return <div>{tSafe("profile.not_authorized", "Not authorized")}</div>;
 
-  // compute balances for rendering
-  const balancesIncludingPending = getCoinBalancesAll(investments, withdrawals);
-  const balancesConfirmed = getCoinBalancesConfirmed(investments, withdrawals);
+  // confirmed balances only (used for totals and per-coin display)
+  const balances = getConfirmedBalances(investments, withdrawals);
 
-  // Find address for coin/network
   function getAddress(coin, network = null) {
     if (coin === "btc") {
       const btcRow = addresses.find(a => a.coin === "btc");
@@ -452,7 +416,7 @@ export default function Profile({ showToast }) {
     return "";
   }
 
-  // Manual refresh handler: refetch investments/withdrawals and prices
+  // manual refresh
   async function handleRefreshHoldings() {
     if (!user) return;
     setHoldingsLoading(true);
@@ -464,9 +428,8 @@ export default function Profile({ showToast }) {
       ]);
       if (!invErr && Array.isArray(invData)) setInvestments(invData);
       if (!wdErr && Array.isArray(wdData)) setWithdrawals(wdData);
-      const newBalancesIncludingPending = getCoinBalancesAll(invData || investments, wdData || withdrawals);
-      const newBalancesConfirmed = getCoinBalancesConfirmed(invData || investments, wdData || withdrawals);
-      await fetchPricesAndComputeTotals(newBalancesIncludingPending, newBalancesConfirmed);
+      const newConfirmed = getConfirmedBalances(invData || investments, wdData || withdrawals);
+      await fetchPricesForConfirmedBalances(newConfirmed);
       showToast && showToast("info", tSafe("profile.refreshing", "Refreshing holdings..."));
     } catch (err) {
       console.error("Refresh failed", err);
@@ -476,7 +439,6 @@ export default function Profile({ showToast }) {
     }
   }
 
-  // coins to display in holdings (keeps consistent order)
   const displayCoins = ["btc", "eth", "usdt"];
 
   return (
@@ -487,27 +449,12 @@ export default function Profile({ showToast }) {
           70% { box-shadow: 0 0 0 10px rgba(25, 199, 84, 0); }
           100% { box-shadow: 0 0 0 0 rgba(25, 199, 84, 0); }
         }
-        .pulsing-badge {
-          animation: pulse-badge 1.2s infinite;
-        }
-        .badge-erc20 {
-          background-color: #6f42c1 !important;
-        }
-        .badge-bep20 {
-          background-color: #198754 !important;
-        }
-        .badge-trc20 {
-          background-color: #ff9800 !important;
-        }
-        /* Responsive tweaks for holdings card */
-        .holdings-coin {
-          min-width: 0; /* allow text truncation */
-        }
-        .holdings-coin .fw-bold {
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
-        }
+        .pulsing-badge { animation: pulse-badge 1.2s infinite; }
+        .badge-erc20 { background-color: #6f42c1 !important; }
+        .badge-bep20 { background-color: #198754 !important; }
+        .badge-trc20 { background-color: #ff9800 !important; }
+        .holdings-coin { min-width: 0; }
+        .holdings-coin .fw-bold { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
       `}</style>
 
       <CryptoPriceMarquee />
@@ -532,33 +479,28 @@ export default function Profile({ showToast }) {
         </div>
       </div>
 
-      {/* Total Assets / Holdings Section (responsive + translatable)
-          - Shows Total (including pending deposits) and Confirmed (approved only).
-      */}
+      {/* Total Assets / Holdings (CONFIRMED ONLY) */}
       <div className="row mb-4">
         <div className="col-12 col-md-10 mx-auto">
           <div className="card shadow-sm rounded-3 p-3">
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
               <div className="flex-grow-1">
                 <h5 className="mb-0 fw-bold">{tSafe("profile.total_assets_title", "Total Assets")}</h5>
-                <small className="text-muted">{tSafe("profile.total_assets_sub", "Summary of your current holdings")}</small>
+                <small className="text-muted">{tSafe("profile.total_assets_sub", "Summary of your confirmed holdings (approved deposits only)")}</small>
               </div>
 
               <div className="text-end">
                 {holdingsLoading ? (
                   <div className="text-muted">{tSafe("profile.calculating", "Calculating...")}</div>
-                ) : totalUSDIncludingPending === null ? (
+                ) : totalUSD === null ? (
                   <div>
                     <div className="fw-bold">{tSafe("profile.prices_unavailable", "Prices unavailable")}</div>
                     <small className="text-muted">{tSafe("profile.native_balance_display", "Showing balances in coin units")}</small>
                   </div>
                 ) : (
                   <div>
-                    <div className="fs-5 fw-bold">${Number(totalUSDIncludingPending).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                    <small className="text-muted">{tSafe("profile.total_including_pending", "Total (including pending deposits)")}</small>
-                    <div className="mt-1 small text-muted">
-                      <strong>{tSafe("profile.confirmed_assets_title", "Confirmed:")}</strong> {totalUSDConfirmed !== null ? `$${Number(totalUSDConfirmed).toLocaleString(undefined, { maximumFractionDigits: 2 })}` : tSafe("profile.prices_unavailable", "Prices unavailable")}
-                    </div>
+                    <div className="fs-5 fw-bold">${Number(totalUSD).toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    <small className="text-muted">{tSafe("profile.total_value_usd", "Total value (USD)")}</small>
                   </div>
                 )}
               </div>
@@ -566,8 +508,7 @@ export default function Profile({ showToast }) {
 
             <div className="row mt-3 gy-2">
               {displayCoins.map(c => {
-                const amtIncluding = Number(balancesIncludingPending[c]) || 0;
-                const amtConfirmed = Number(balancesConfirmed[c]) || 0;
+                const amt = Number(balances[c]) || 0; // confirmed amount only
                 const price = coinPrices[c] ?? null;
                 return (
                   <div key={c} className="col-12 col-sm-6 col-md-4">
@@ -586,7 +527,7 @@ export default function Profile({ showToast }) {
                           <div className="fw-bold text-uppercase">{c}</div>
                           <div className="text-end">
                             <div className="small text-muted">{tSafe("profile.balance_label", "Balance")}</div>
-                            <div className="fw-semibold">{amtIncluding} <small className="text-muted">({tSafe("profile.confirmed_short", "confirmed")}: {amtConfirmed})</small></div>
+                            <div className="fw-semibold">{amt}</div>
                           </div>
                         </div>
 
@@ -600,7 +541,7 @@ export default function Profile({ showToast }) {
                           </div>
                           <div>
                             {price !== null ? (
-                              <span>~${(amtIncluding * price).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                              <span>~${(amt * price).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
                             ) : null}
                           </div>
                         </div>
@@ -626,31 +567,20 @@ export default function Profile({ showToast }) {
         </div>
       </div>
 
-      {/* How to Get Started Section (Responsive Final Version) */}
+      {/* How to Get Started Section */}
       <div className="container my-4">
         <div className="row justify-content-center">
           <div className="col-12 col-md-10 col-lg-8">
             <div className="card border-warning shadow-sm rounded-3 p-3 p-md-4 text-center">
-              {/* Icon */}
               <div className="d-flex justify-content-center align-items-center mb-3">
                 <div
                   className="rounded-circle d-flex justify-content-center align-items-center"
-                  style={{
-                    width: "70px",
-                    height: "70px",
-                    backgroundColor: "#fff8e1",
-                    border: "2px solid #ffcc00",
-                  }}
+                  style={{ width: "70px", height: "70px", backgroundColor: "#fff8e1", border: "2px solid #ffcc00" }}
                 >
-                  <i
-                    className="bi bi-currency-dollar text-warning"
-                    style={{ fontSize: "2rem" }}
-                    aria-hidden
-                  ></i>
+                  <i className="bi bi-currency-dollar text-warning" style={{ fontSize: "2rem" }} aria-hidden></i>
                 </div>
               </div>
 
-              {/* Title */}
               <h5 className="fw-bold text-dark mb-3">
                 {tSafe("profile.quick_guide_title", "Quick Guide")}&nbsp;
                 <span className="badge bg-light text-warning border border-warning ms-1">
@@ -658,19 +588,11 @@ export default function Profile({ showToast }) {
                 </span>
               </h5>
 
-              {/* Steps */}
-              <div
-                className="bg-light p-3 p-md-4 rounded-3 mx-auto text-start"
-                style={{ maxWidth: "600px" }}
-              >
+              <div className="bg-light p-3 p-md-4 rounded-3 mx-auto text-start" style={{ maxWidth: "600px" }}>
                 <h6 className="fw-bold mb-3 text-center">{tSafe("profile.how_to_get_started_heading", "How to get started:")}</h6>
                 <ol className="text-muted small mb-0 ps-3">
-                  <li>
-                    {tSafe("profile.step_1_prefix", "Click")} <strong onClick={() => setModalOpen(true)}>{tSafe("profile.invest_now", '"Invest Now"')}</strong>.
-                  </li>
-                  <li>
-                    {tSafe("profile.step_2", "Select your preferred cryptocurrency and network (if applicable).")}
-                  </li>
+                  <li>{tSafe("profile.step_1_prefix", "Click")} <strong onClick={() => setModalOpen(true)}>{tSafe("profile.invest_now", '"Invest Now"')}</strong>.</li>
+                  <li>{tSafe("profile.step_2", "Select your preferred cryptocurrency and network (if applicable).")}</li>
                   <li>{tSafe("profile.step_3", "Copy the deposit address.")}</li>
                   <li>{tSafe("profile.step_4", "Send cryptocurrency to the provided (copied) address.")}</li>
                   <li>{tSafe("profile.step_5", "Confirm your payment.")}</li>
@@ -681,7 +603,6 @@ export default function Profile({ showToast }) {
                 </ol>
               </div>
 
-              {/* Button (optional) */}
               <div className="d-flex justify-content-center mt-4">
                 <button className="btn btn-warning fw-semibold px-4" onClick={() => setModalOpen(true)}>
                   {tSafe("profile.invest_now_cta", "Invest Now")}
@@ -704,58 +625,22 @@ export default function Profile({ showToast }) {
                 </div>
                 <div className="modal-body">
                   <div className="mb-3 text-center">
-                    <img
-                      src={picPreview || "https://ui-avatars.com/api/?name=" + encodeURIComponent(editName || "U") + "&background=random"}
-                      alt={tSafe("profile.preview_alt", "preview")}
-                      className="rounded-circle mb-2"
-                      style={{ width: 80, height: 80, objectFit: "cover", border: "2px solid #1bc6ff" }}
-                    />
+                    <img src={picPreview || "https://ui-avatars.com/api/?name=" + encodeURIComponent(editName || "U") + "&background=random"} alt={tSafe("profile.preview_alt", "preview")} className="rounded-circle mb-2" style={{ width: 80, height: 80, objectFit: "cover", border: "2px solid #1bc6ff" }} />
                     <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        style={{ display: "none" }}
-                        onChange={handlePicChange}
-                        aria-label={tSafe("profile.change_picture_input", "Change picture input")}
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        {tSafe("profile.change_picture", "Change Picture")}
-                      </button>
-                      {picPreview && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger ms-2"
-                          onClick={() => setPicPreview("")}
-                        >
-                          {tSafe("profile.remove_picture", "Remove")}
-                        </button>
-                      )}
+                      <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handlePicChange} aria-label={tSafe("profile.change_picture_input", "Change picture input")} />
+                      <button type="button" className="btn btn-sm btn-secondary" onClick={() => fileInputRef.current?.click()}>{tSafe("profile.change_picture", "Change Picture")}</button>
+                      {picPreview && <button type="button" className="btn btn-sm btn-outline-danger ms-2" onClick={() => setPicPreview("")}>{tSafe("profile.remove_picture", "Remove")}</button>}
                     </div>
                   </div>
                   <div className="mb-3">
                     <label className="form-label fw-bold">{tSafe("profile.display_name_label", "Display Name")}</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={editName}
-                      onChange={e => setEditName(e.target.value)}
-                      required
-                    />
+                    <input type="text" className="form-control" value={editName} onChange={e => setEditName(e.target.value)} required />
                   </div>
                 </div>
                 <div className="modal-footer d-flex justify-content-between">
                   <button type="submit" className="btn btn-primary">{tSafe("profile.save", "Save")}</button>
-                  <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>
-                    {tSafe("profile.cancel", "Cancel")}
-                  </button>
-                  <button type="button" className="btn btn-danger" onClick={handleDeleteAccount}>
-                    {tSafe("profile.delete_account", "Delete Account")}
-                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setEditing(false)}>{tSafe("profile.cancel", "Cancel")}</button>
+                  <button type="button" className="btn btn-danger" onClick={handleDeleteAccount}>{tSafe("profile.delete_account", "Delete Account")}</button>
                 </div>
               </form>
             </div>
@@ -768,9 +653,7 @@ export default function Profile({ showToast }) {
         <div className="col-md-10 mx-auto">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h4>{tSafe("profile.your_investments", "Your Investments")}</h4>
-            <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
-              {tSafe("profile.add_funds", "Add Funds")}
-            </button>
+            <button className="btn btn-primary" onClick={() => setModalOpen(true)}>{tSafe("profile.add_funds", "Add Funds")}</button>
           </div>
           <div className="table-responsive">
             <table className="table table-bordered align-middle">
@@ -784,71 +667,25 @@ export default function Profile({ showToast }) {
               </thead>
               <tbody>
                 {investments.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center text-muted">
-                      {tSafe("profile.no_investments", "No investments yet.")}
-                    </td>
-                  </tr>
-                ) : (
-                  investments.map(inv => {
-                    const key = `inv-${inv.id}`;
-                    const status = inv.status || "pending";
-
-                    const coinImages = {
-                      btc: "/images/bitcoin.png",
-                      eth: "/images/ethereum.png",
-                      usdt: "/images/tether.png",
-                    };
-
-                    return (
-                      <tr key={key}>
-                        <td className="fw-bold text-uppercase d-flex align-items-center">
-                          <img
-                            src={coinImages[inv.coin.toLowerCase()]}
-                            alt={inv.coin}
-                            className="me-2"
-                            style={{
-                              width: "20px",
-                              height: "20px",
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                            }}
-                          />
-                          {inv.coin}
-                          {inv.coin === "eth" && (
-                            <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>
-                          )}
-                          {inv.coin === "usdt" && inv.network && (
-                            <span
-                              className={`badge ${
-                                inv.network === "BEP20"
-                                  ? "badge-bep20"
-                                  : "badge-trc20"
-                              } ms-2`}
-                            >
-                              {inv.network}
-                            </span>
-                          )}
-                        </td>
-                        <td>{inv.amount}</td>
-                        <td>
-                          <span
-                            className={`badge bg-${
-                              status === "pending" ? "warning" : "success"
-                            } text-dark`}
-                          >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </span>
-                        </td>
-                        <td>
-                          {inv.created_at
-                            ? new Date(inv.created_at).toLocaleString()
-                            : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                  <tr><td colSpan={4} className="text-center text-muted">{tSafe("profile.no_investments", "No investments yet.")}</td></tr>
+                ) : investments.map(inv => {
+                  const key = `inv-${inv.id}`;
+                  const status = inv.status || "pending";
+                  const coinImages = { btc: "/images/bitcoin.png", eth: "/images/ethereum.png", usdt: "/images/tether.png" };
+                  return (
+                    <tr key={key}>
+                      <td className="fw-bold text-uppercase d-flex align-items-center">
+                        <img src={coinImages[inv.coin.toLowerCase()]} alt={inv.coin} className="me-2" style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} />
+                        {inv.coin}
+                        {inv.coin === "eth" && <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>}
+                        {inv.coin === "usdt" && inv.network && <span className={`badge ${inv.network === "BEP20" ? "badge-bep20" : "badge-trc20"} ms-2`}>{inv.network}</span>}
+                      </td>
+                      <td>{inv.amount}</td>
+                      <td><span className={`badge bg-${status === "pending" ? "warning" : "success"} text-dark`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                      <td>{inv.created_at ? new Date(inv.created_at).toLocaleString() : "-"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -858,9 +695,7 @@ export default function Profile({ showToast }) {
       {/* Withdraw Button */}
       <div className="row mb-4">
         <div className="col-md-10 mx-auto text-end">
-          <button className="btn btn-warning mt-3" onClick={handleWithdraw}>
-            {tSafe("profile.withdraw_funds", "Withdraw Funds")}
-          </button>
+          <button className="btn btn-warning mt-3" onClick={handleWithdraw}>{tSafe("profile.withdraw_funds", "Withdraw Funds")}</button>
         </div>
       </div>
 
@@ -886,67 +721,23 @@ export default function Profile({ showToast }) {
                   ...investments.map(inv => ({ ...inv, type: "Deposit" })),
                   ...withdrawals.map(wd => ({ ...wd, type: "Withdrawal" })),
                 ]
-                  .sort(
-                    (a, b) =>
-                      new Date(b.created_at || b.timestamp) -
-                      new Date(a.created_at || a.timestamp)
-                  )
+                  .sort((a, b) => new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp))
                   .map(tx => {
                     const key = `tx-${tx.type}-${tx.id}`;
                     const status = tx.status || "pending";
-
-                    const coinImages = {
-                      btc: "/images/bitcoin.png",
-                      eth: "/images/ethereum.png",
-                      usdt: "/images/tether.png",
-                    };
-
+                    const coinImages = { btc: "/images/bitcoin.png", eth: "/images/ethereum.png", usdt: "/images/tether.png" };
                     return (
                       <tr key={key}>
                         <td>{tx.type}</td>
                         <td className="fw-bold text-uppercase d-flex align-items-center">
-                          <img
-                            src={coinImages[tx.coin.toLowerCase()]}
-                            alt={tx.coin}
-                            className="me-2"
-                            style={{
-                              width: "20px",
-                              height: "20px",
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                            }}
-                          />
+                          <img src={coinImages[tx.coin.toLowerCase()]} alt={tx.coin} className="me-2" style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} />
                           {tx.coin}
-                          {tx.coin === "eth" && (
-                            <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>
-                          )}
-                          {tx.coin === "usdt" && tx.network && (
-                            <span
-                              className={`badge ${
-                                tx.network === "BEP20"
-                                  ? "badge-bep20"
-                                  : "badge-trc20"
-                              } ms-2`}
-                            >
-                              {tx.network}
-                            </span>
-                          )}
+                          {tx.coin === "eth" && <span className="badge badge-erc20 ms-2">{tSafe("profile.badge_erc20", "ERC20")}</span>}
+                          {tx.coin === "usdt" && tx.network && <span className={`badge ${tx.network === "BEP20" ? "badge-bep20" : "badge-trc20"} ms-2`}>{tx.network}</span>}
                         </td>
                         <td>{tx.amount}</td>
-                        <td>
-                          <span
-                            className={`badge bg-${
-                              status === "pending" ? "warning" : "success"
-                            } text-dark`}
-                          >
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </span>
-                        </td>
-                        <td>
-                          {tx.created_at
-                            ? new Date(tx.created_at).toLocaleString()
-                            : "-"}
-                        </td>
+                        <td><span className={`badge bg-${status === "pending" ? "warning" : "success"} text-dark`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                        <td>{tx.created_at ? new Date(tx.created_at).toLocaleString() : "-"}</td>
                       </tr>
                     );
                   })}
@@ -972,75 +763,20 @@ export default function Profile({ showToast }) {
                     <div className="d-flex gap-3">
                       {["btc", "eth", "usdt"].map(c => (
                         <div key={c} style={{ position: "relative" }}>
-                          {c === "usdt" && (
-                            <>
-                              <span
-                                className="pulsing-badge badge-trc20"
-                                style={{
-                                  position: "absolute",
-                                  top: "-18px",
-                                  left: "50%",
-                                  transform: "translateX(-50%)",
-                                  color: "white",
-                                  fontSize: "11px",
-                                  fontWeight: "bold",
-                                  padding: "2px 8px",
-                                  borderRadius: "7px",
-                                  whiteSpace: "nowrap",
-                                  zIndex: 2,
-                                }}
-                              >
-                                {tSafe("profile.network_label", "Network!")}
-                              </span>
-                            </>
-                          )}
-                          {c === "eth" && (
-                            <span
-                              className="pulsing-badge badge-erc20"
-                              style={{
-                                position: "absolute",
-                                top: "-18px",
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                                color: "white",
-                                fontSize: "11px",
-                                fontWeight: "bold",
-                                padding: "2px 8px",
-                                borderRadius: "7px",
-                                whiteSpace: "nowrap",
-                                zIndex: 2,
-                              }}
-                            >
-                              {tSafe("profile.badge_erc20", "ERC20")}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            className={`btn btn-outline-${coin === c ? "primary" : "secondary"}`}
-                            onClick={() => { setCoin(c); if(c !== "usdt"){ setNetwork(""); } }}
-                            style={{ position: "relative", zIndex: 1 }}
-                          >
-                            {c.toUpperCase()}
-                          </button>
+                          {c === "usdt" && <span className="pulsing-badge badge-trc20" style={{ position: "absolute", top: "-18px", left: "50%", transform: "translateX(-50%)", color: "white", fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "7px", whiteSpace: "nowrap", zIndex: 2 }}>{tSafe("profile.network_label", "Network!")}</span>}
+                          {c === "eth" && <span className="pulsing-badge badge-erc20" style={{ position: "absolute", top: "-18px", left: "50%", transform: "translateX(-50%)", color: "white", fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "7px", whiteSpace: "nowrap", zIndex: 2 }}>{tSafe("profile.badge_erc20", "ERC20")}</span>}
+                          <button type="button" className={`btn btn-outline-${coin === c ? "primary" : "secondary"}`} onClick={() => { setCoin(c); if (c !== "usdt") setNetwork(""); }} style={{ position: "relative", zIndex: 1 }}>{c.toUpperCase()}</button>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* If USDT, let user pick network */}
                   {coin === "usdt" && (
                     <div className="mb-3">
                       <label className="form-label fw-bold">{tSafe("profile.select_usdt_network", "Select USDT Network")}</label>
                       <div className="d-flex gap-3">
                         {["BEP20", "TRC20"].map(net => (
-                          <button
-                            key={net}
-                            type="button"
-                            className={`btn btn-outline-${network === net ? "primary" : "secondary"}`}
-                            onClick={() => setNetwork(net)}
-                          >
-                            {net}
-                          </button>
+                          <button key={net} type="button" className={`btn btn-outline-${network === net ? "primary" : "secondary"}`} onClick={() => setNetwork(net)}>{net}</button>
                         ))}
                       </div>
                     </div>
@@ -1049,41 +785,14 @@ export default function Profile({ showToast }) {
                   <div className="mb-3">
                     <label className="form-label fw-bold">{tSafe("profile.deposit_address", "Deposit Address")}</label>
                     <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={
-                          coin === "btc" ? getAddress("btc") :
-                          coin === "eth" ? getAddress("eth", "ERC20") :
-                          coin === "usdt" && network ? getAddress("usdt", network) : ""
-                        }
-                        readOnly
-                      />
-                      <button
-                        type="button"
-                        className="btn btn-outline-secondary"
-                        onClick={() => handleCopyAddress(
-                          coin === "btc" ? getAddress("btc") :
-                          coin === "eth" ? getAddress("eth", "ERC20") :
-                          coin === "usdt" && network ? getAddress("usdt", network) : ""
-                        )}
-                      >
-                        {tSafe("profile.copy", "Copy")}
-                      </button>
+                      <input type="text" className="form-control" value={coin === "btc" ? getAddress("btc") : coin === "eth" ? getAddress("eth", "ERC20") : coin === "usdt" && network ? getAddress("usdt", network) : ""} readOnly />
+                      <button type="button" className="btn btn-outline-secondary" onClick={() => handleCopyAddress(coin === "btc" ? getAddress("btc") : coin === "eth" ? getAddress("eth", "ERC20") : coin === "usdt" && network ? getAddress("usdt", network) : "")}>{tSafe("profile.copy", "Copy")}</button>
                     </div>
                   </div>
 
                   <div className="mb-3">
                     <label className="form-label fw-bold">{tSafe("profile.amount_label", "Amount")}</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      min="0"
-                      step="any"
-                      value={amount}
-                      onChange={e => setAmount(e.target.value)}
-                      required
-                    />
+                    <input type="number" className="form-control" min="0" step="any" value={amount} onChange={e => setAmount(e.target.value)} required />
                   </div>
                 </div>
                 <div className="modal-footer">
@@ -1104,44 +813,22 @@ export default function Profile({ showToast }) {
               <form onSubmit={withdrawMsg ? undefined : submitWithdraw}>
                 <div className="modal-header">
                   <h5 className="modal-title">{tSafe("profile.withdrawal", "Withdrawal")}</h5>
-                  <button type="button" className="btn-close" aria-label={tSafe("profile.close", "Close")} onClick={() => {
-                    setWithdrawModalOpen(false);
-                    setWithdrawAddress("");
-                    setWithdrawNetwork("");
-                  }}></button>
+                  <button type="button" className="btn-close" aria-label={tSafe("profile.close", "Close")} onClick={() => { setWithdrawModalOpen(false); setWithdrawAddress(""); setWithdrawNetwork(""); }}></button>
                 </div>
                 <div className="modal-body">
-                  {withdrawMsg ? (
-                    <p>{withdrawMsg}</p>
-                  ) : (
+                  {withdrawMsg ? <p>{withdrawMsg}</p> : (
                     <>
                       <div className="mb-3">
                         <label className="form-label fw-bold">{tSafe("profile.select_coin", "Select Coin")}</label>
-                        <select
-                          className="form-select"
-                          value={withdrawCoin}
-                          onChange={e => {
-                            setWithdrawCoin(e.target.value);
-                            setWithdrawErr("");
-                            setWithdrawNetwork("");
-                          }}
-                        >
-                          {["btc", "eth", "usdt"].map(c => (
-                            <option key={c} value={c}>{c.toUpperCase()}</option>
-                          ))}
+                        <select className="form-select" value={withdrawCoin} onChange={e => { setWithdrawCoin(e.target.value); setWithdrawErr(""); setWithdrawNetwork(""); }}>
+                          {["btc", "eth", "usdt"].map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
                         </select>
                       </div>
 
-                      {/* If USDT, pick network */}
                       {withdrawCoin === "usdt" && (
                         <div className="mb-3">
                           <label className="form-label fw-bold">{tSafe("profile.select_usdt_network", "Select USDT Network")}</label>
-                          <select
-                            className="form-select"
-                            value={withdrawNetwork}
-                            onChange={e => setWithdrawNetwork(e.target.value)}
-                            required
-                          >
+                          <select className="form-select" value={withdrawNetwork} onChange={e => setWithdrawNetwork(e.target.value)} required>
                             <option value="">{tSafe("profile.select_network_placeholder", "Select Network")}</option>
                             <option value="BEP20">BEP20</option>
                             <option value="TRC20">TRC20</option>
@@ -1151,56 +838,22 @@ export default function Profile({ showToast }) {
 
                       <div className="mb-3">
                         <label className="form-label fw-bold">{tSafe("profile.withdrawal_amount", "Withdrawal Amount")}</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          min="0"
-                          step="any"
-                          value={withdrawAmount}
-                          onChange={e => {
-                            setWithdrawAmount(e.target.value);
-                            setWithdrawErr("");
-                          }}
-                          required
-                        />
+                        <input type="number" className="form-control" min="0" step="any" value={withdrawAmount} onChange={e => { setWithdrawAmount(e.target.value); setWithdrawErr(""); }} required />
                         {withdrawErr && <div className="text-danger mt-2">{withdrawErr}</div>}
                       </div>
 
                       <div className="mb-3">
                         <label className="form-label fw-bold">{tSafe("profile.wallet_address", "Wallet Address")}</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={withdrawAddress}
-                          onChange={e => setWithdrawAddress(e.target.value)}
-                          placeholder={tSafe("profile.wallet_placeholder", "Enter your wallet address")}
-                          required
-                        />
+                        <input type="text" className="form-control" value={withdrawAddress} onChange={e => setWithdrawAddress(e.target.value)} placeholder={tSafe("profile.wallet_placeholder", "Enter your wallet address")} required />
                       </div>
                     </>
                   )}
                 </div>
                 <div className="modal-footer">
-                  {withdrawMsg ? (
-                    <button type="button" className="btn btn-primary" onClick={() => {
-                      setWithdrawModalOpen(false);
-                      setWithdrawAddress("");
-                      setWithdrawNetwork("");
-                    }}>
-                      {tSafe("profile.close", "Close")}
-                    </button>
-                  ) : (
-                    <>
-                      <button type="submit" className="btn btn-warning">{tSafe("profile.withdraw_button", "Withdraw")}</button>
-                      <button type="button" className="btn btn-secondary" onClick={() => {
-                        setWithdrawModalOpen(false);
-                        setWithdrawAddress("");
-                        setWithdrawNetwork("");
-                      }}>
-                        {tSafe("profile.cancel", "Cancel")}
-                      </button>
-                    </>
-                  )}
+                  {withdrawMsg ? <button type="button" className="btn btn-primary" onClick={() => { setWithdrawModalOpen(false); setWithdrawAddress(""); setWithdrawNetwork(""); }}>{tSafe("profile.close", "Close")}</button> : <>
+                    <button type="submit" className="btn btn-warning">{tSafe("profile.withdraw_button", "Withdraw")}</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => { setWithdrawModalOpen(false); setWithdrawAddress(""); setWithdrawNetwork(""); }}>{tSafe("profile.cancel", "Cancel")}</button>
+                  </>}
                 </div>
               </form>
             </div>
